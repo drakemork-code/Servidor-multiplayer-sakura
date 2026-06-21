@@ -310,6 +310,16 @@ func _send_enemy_list_to_client(peer_id: int) -> void:
 	if enemy_list.size() > 0:
 		_rpc_sync_enemy_list.rpc_id(peer_id, enemy_list)
 
+
+@rpc("any_peer", "reliable")
+func request_enemy_resync() -> void:
+	if not is_server:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	print("[Server] Resync de enemigos solicitado por peer %d" % sender)
+	await get_tree().process_frame
+	_send_enemy_list_to_client(sender)
+
 @rpc("authority", "reliable")
 func _rpc_sync_enemy_list(enemy_list: Array) -> void:
 	# Asignar network_ids del servidor a los enemigos locales por proximidad
