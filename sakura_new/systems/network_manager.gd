@@ -240,7 +240,10 @@ func _register_on_server(data: Dictionary) -> void:
 	online_players[sender] = data
 	print("[Server] Jugador registrado: %s (ID %d)" % [data.get("name","?"), sender])
 	_send_player_joined.rpc(sender, data)
-	# Sincronizar enemigos activos al nuevo cliente
+	# Sincronizar enemigos activos al nuevo cliente.
+	# Delay de 1s para asegurar que los call_deferred de spawn
+	# de las escenas de mundo hayan terminado antes de enviar la lista.
+	await get_tree().create_timer(1.0).timeout
 	_send_enemy_list_to_client(sender)
 
 # ── FIX APARIENCIA EN CALIENTE ──────────────────────────────────
@@ -451,10 +454,12 @@ func _rpc_enemy_damage(enemy_network_id: int, damage: int, kb: Dictionary, attac
 	else:
 		var sender_pos_d = online_players.get(sender_id, {}).get("position", {"x":0.0,"y":0.0})
 		sender_pos = Vector2(sender_pos_d.x, sender_pos_d.y)
-	var dist = sender_pos.distance_to(e.global_position)
-	if dist > 220.0:
-		print("[Server][Combat] RECHAZADO — distancia inválida (%.1f px) peer %d vs nid=%d" % [dist, sender_id, enemy_network_id])
-		return
+	# FIX v27: La validación de distancia se eliminó porque el servidor
+	# headless no tiene las posiciones exactas de los enemigos del cliente
+	# (son instancias locales del cliente, no del servidor), así que la
+	# distancia calculada aquí siempre era incorrecta y rechazaba daño válido.
+	# La validación de cooldown (MIN_ATTACK_INTERVAL) ya previene el spam.
+	
 	# Aplicar defensa server-side
 	var hp_before = e.current_hp
 	var real_dmg = max(1, damage - e.defense)

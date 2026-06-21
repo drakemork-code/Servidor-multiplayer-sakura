@@ -261,13 +261,22 @@ func spawn_enemy(enemy_type: String, position: Vector2, level: int = 1, parent_o
 		current_scene.add_child(enemy)
 		enemy.global_position = position
 		enemy.zone_scene_path = current_scene.scene_file_path
-		# ── NUEVO: asignar network_id único ──────────────────
+		# ── Asignar network_id ─────────────────────────────────
+		# Servidor: asignar ID único autoritativo.
+		# Cliente online: dejar en 0, el servidor enviará el ID real
+		#   vía _rpc_sync_enemy_list, que matchea por proximidad.
+		# Offline: asignar ID local para combate sin red.
 		var nm = get_node_or_null("/root/NetworkManager")
-		if nm and nm.has_method("assign_enemy_network_id"):
+		var is_online_client = nm and nm.is_client and \
+			multiplayer.has_multiplayer_peer() and \
+			multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+		if nm and nm.is_server:
 			nm.assign_enemy_network_id(enemy)
+		elif is_online_client:
+			enemy.set("network_id", 0)
 		else:
 			enemy.set("network_id", randi_range(100000, 999999))
-		# ─────────────────────────────────────────────────────
+		# ───────────────────────────────────────────────────────
 		active_enemies.append(enemy)
 		print("[EnemyManager] Spawn: ", enemy_type, " Nv.", level, " ID:", (enemy.get("network_id") if enemy.get("network_id") != null else "?"), " en ", position, " parent=", current_scene.name)
 	else:
