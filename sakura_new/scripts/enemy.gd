@@ -926,7 +926,7 @@ func take_damage(amount: int, knockback_dir: Vector2 = Vector2.ZERO) -> void:
 
 	# ── v22.2: enrutar por servidor si hay conexión activa ────
 	var nm = get_node_or_null("/root/NetworkManager")
-	var is_online_client := nm and nm.is_client and multiplayer.has_multiplayer_peer() \
+	var is_online_client: bool = nm and nm.is_client and multiplayer.has_multiplayer_peer() \
 		and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 
 	if is_online_client and network_id != 0:
