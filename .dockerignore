@@ -1,3 +1,6 @@
-.git
-.godot
-*.import
+sakura_new/.godot/
+sakura_new/.import/
+**/*.import
+.git/
+.gitignore
+*.md
