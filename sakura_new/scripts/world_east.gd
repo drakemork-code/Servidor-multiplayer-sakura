@@ -60,7 +60,7 @@ func _ready() -> void:
 	_draw_background()
 	_draw_ring_overlays()
 	_draw_terrain_features()
-	_setup_camera_limits()
+	call_deferred("_setup_camera_limits")
 	if not _srv:
 		_spawn_player()
 	_setup_borders()
@@ -269,6 +269,8 @@ func _setup_camera_limits() -> void:
 	if cam:
 		cam.limit_left = -SCENE_WIDTH/2; cam.limit_right = SCENE_WIDTH/2
 		cam.limit_top = -SCENE_HEIGHT/2; cam.limit_bottom = SCENE_HEIGHT/2
+	else:
+		call_deferred("_setup_camera_limits")
 
 func _spawn_player() -> void:
 	var players = get_tree().get_nodes_in_group("player")
@@ -305,7 +307,7 @@ func _setup_borders() -> void:
 				GameManager.player_spawn_position = spawn_pos
 				GameManager.player_spawn_override  = true
 				var _nm_ref = get_node_or_null("/root/NetworkManager"); if _nm_ref: _nm_ref._clear_remote_nodes()
-			get_tree().change_scene_to_file("res://scenes/town.tscn")
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/town.tscn")
 	)
 
 	# Salida este — lleva a la sala exclusiva del Boss (boss_east.tscn)
@@ -317,7 +319,7 @@ func _setup_borders() -> void:
 			_boss_spawned = true
 			if has_node("/root/AudioManager"): get_node("/root/AudioManager").fade_out(0.6)
 			var _nm_ref = get_node_or_null("/root/NetworkManager"); if _nm_ref: _nm_ref._clear_remote_nodes()
-			get_tree().change_scene_to_file("res://scenes/boss_east.tscn")
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/boss_east.tscn")
 	)
 
 func _add_wall(pos: Vector2, size: Vector2) -> void:
@@ -393,7 +395,14 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 	if has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
-			var lv = randi_range(lv_min, lv_max)
+			# FIX BUG CRITICO MULTIJUGADOR: semilla deterministica por slot
+			# para que servidor y todos los clientes generen el mismo nivel
+			# (antes randi_range() global generaba un nivel distinto en cada
+			# peer, rompiendo el matching de enemigos entre cliente/servidor).
+			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
+			var slot_rng := RandomNumberGenerator.new()
+			slot_rng.seed = slot_seed
+			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
 				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
 				if e:
@@ -457,7 +466,14 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 	if has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
-			var lv = randi_range(lv_min, lv_max)
+			# FIX BUG CRITICO MULTIJUGADOR: semilla deterministica por slot
+			# para que servidor y todos los clientes generen el mismo nivel
+			# (antes randi_range() global generaba un nivel distinto en cada
+			# peer, rompiendo el matching de enemigos entre cliente/servidor).
+			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
+			var slot_rng := RandomNumberGenerator.new()
+			slot_rng.seed = slot_seed
+			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
 				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
 				if e:

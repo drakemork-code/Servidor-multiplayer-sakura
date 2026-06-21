@@ -239,7 +239,20 @@ func _register_on_server(data: Dictionary) -> void:
 	var sender = multiplayer.get_remote_sender_id()
 	online_players[sender] = data
 	print("[Server] Jugador registrado: %s (ID %d)" % [data.get("name","?"), sender])
+	# Avisar a todos los demás peers que este jugador se unió
 	_send_player_joined.rpc(sender, data)
+	# FIX BUG CRÍTICO: además del broadcast anterior, enviar explícitamente
+	# al jugador RECIÉN CONECTADO la lista de jugadores que YA estaban en
+	# su misma escena. Antes solo se cubría esto en _on_peer_connected()
+	# (evento de transporte de bajo nivel), que podía dispararse antes de
+	# que online_players[sender]["scene"] tuviera el valor correcto —
+	# dejando al jugador nuevo sin ver a nadie hasta un resync manual.
+	var sender_scene: String = data.get("scene", "")
+	for pid in online_players:
+		if pid == sender:
+			continue
+		if online_players[pid].get("scene", "") == sender_scene:
+			_send_player_joined.rpc_id(sender, pid, online_players[pid])
 	# Sincronizar enemigos activos al nuevo cliente.
 	# Delay de 1s para asegurar que los call_deferred de spawn
 	# de las escenas de mundo hayan terminado antes de enviar la lista.
@@ -310,15 +323,43 @@ func _send_enemy_list_to_client(peer_id: int) -> void:
 	if enemy_list.size() > 0:
 		_rpc_sync_enemy_list.rpc_id(peer_id, enemy_list)
 
-
+# FIX ERROR 3: el cliente puede pedir re-sincronización de enemigos una vez
+# que su escena ha terminado de cargar. Esto resuelve el problema de que
+# _send_enemy_list_to_client se ejecutaba antes de que los enemigos locales
+# existieran en el árbol de la nueva escena.
 @rpc("any_peer", "reliable")
 func request_enemy_resync() -> void:
 	if not is_server:
 		return
 	var sender := multiplayer.get_remote_sender_id()
 	print("[Server] Resync de enemigos solicitado por peer %d" % sender)
+	# Esperar 1 frame para que cualquier spawn pendiente del servidor haya ocurrido
 	await get_tree().process_frame
 	_send_enemy_list_to_client(sender)
+
+# FIX BUG CRÍTICO: nombres/skins/habilidades de otros jugadores no se veían.
+# Causa: _spawn_remote_node() descarta el spawn si data.scene != mi escena
+# actual en el momento exacto del registro (carrera de timing al conectar
+# o cambiar de zona), y nunca existía un mecanismo de reintento — a
+# diferencia de los enemigos, que sí tienen request_enemy_resync(). Esto
+# replica el mismo patrón para jugadores: el cliente pide al servidor la
+# lista de jugadores en su escena actual una vez que terminó de cargar.
+@rpc("any_peer", "reliable")
+func request_player_resync() -> void:
+	if not is_server:
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	var sender_scene: String = online_players.get(sender, {}).get("scene", "")
+	print("[Server] Resync de jugadores solicitado por peer %d (escena='%s')" % [sender, sender_scene])
+	var sent := 0
+	for pid in online_players:
+		if pid == sender:
+			continue
+		if online_players[pid].get("scene", "") == sender_scene:
+			_send_player_joined.rpc_id(sender, pid, online_players[pid])
+			sent += 1
+	print("[Server] Resync de jugadores: %d peer(s) enviados a %d" % [sent, sender])
+
 
 @rpc("authority", "reliable")
 func _rpc_sync_enemy_list(enemy_list: Array) -> void:

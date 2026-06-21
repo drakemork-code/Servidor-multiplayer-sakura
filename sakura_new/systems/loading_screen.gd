@@ -81,7 +81,7 @@ var _use_spawn     : bool    = false
 var _progress      : float   = 0.0
 var _phase         : int     = 0       # 0=fade-in 1=loading 2=fade-out
 var _elapsed       : float   = 0.0
-var _min_show_time : float   = 1.8
+var _min_show_time : float   = 3.5
 
 # ── UI refs ───────────────────────────────────────────────────
 var _root          : Control   = null
@@ -295,6 +295,20 @@ func _finish_and_change() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	await get_tree().process_frame
+
+	# FIX ERROR 3: pedir al servidor la lista de enemigos de la nueva zona
+	# una vez que la escena ya está en el árbol y los enemigos locales existen.
+	var _nm_ls = get_node_or_null("/root/NetworkManager")
+	if _nm_ls and _nm_ls.is_client and multiplayer.has_multiplayer_peer() \
+			and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		_nm_ls.request_enemy_resync.rpc_id(1)
+		print("[LoadingScreen] Enemy resync solicitado al servidor para zona: ", GameManager.current_scene)
+		# FIX BUG CRÍTICO: mismo resync pero para jugadores remotos (nombres,
+		# skins, habilidades). Antes solo existía resync de enemigos, así que
+		# si el spawn de un jugador remoto se descartaba por timing al cargar,
+		# nunca se reintentaba — ahora se pide junto con el de enemigos.
+		_nm_ls.request_player_resync.rpc_id(1)
+		print("[LoadingScreen] Player resync solicitado al servidor para zona: ", GameManager.current_scene)
 
 	# Fade out suave
 	var tw := create_tween()

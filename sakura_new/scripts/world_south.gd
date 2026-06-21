@@ -118,7 +118,7 @@ func _ready() -> void:
 	_draw_terrain_features()
 	if not _srv:
 		_animate_scene_trees()
-	_setup_camera_limits()
+	call_deferred("_setup_camera_limits")
 	if not _srv:
 		_spawn_player()
 	_setup_borders()
@@ -358,10 +358,15 @@ func _draw_swamp_pool(pos: Vector2, size: Vector2) -> void:
 # ════════════════════════════════════════════════════════════
 
 func _setup_camera_limits() -> void:
+	# Se llama con call_deferred para que la Camera2D del Player
+	# ya esté en el árbol al momento de configurar los límites.
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.limit_left   = -SCENE_WIDTH  / 2; cam.limit_right  = SCENE_WIDTH  / 2
 		cam.limit_top    = -SCENE_HEIGHT / 2; cam.limit_bottom = SCENE_HEIGHT / 2
+	else:
+		# Reintentar en el siguiente frame si la cámara aún no existe
+		call_deferred("_setup_camera_limits")
 
 func _spawn_player() -> void:
 	var players = get_tree().get_nodes_in_group("player")
@@ -401,7 +406,7 @@ func _setup_borders() -> void:
 				GameManager.player_spawn_position = spawn_pos
 				GameManager.player_spawn_override  = true
 				var _nm_ref = get_node_or_null("/root/NetworkManager"); if _nm_ref: _nm_ref._clear_remote_nodes()
-			get_tree().change_scene_to_file("res://scenes/town.tscn")
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/town.tscn")
 	)
 
 	# Salida sur — lleva a la sala exclusiva del Boss (boss_south.tscn)
@@ -414,7 +419,7 @@ func _setup_borders() -> void:
 			_boss_spawned = true
 			if has_node("/root/AudioManager"): get_node("/root/AudioManager").fade_out(0.6)
 			var _nm_ref = get_node_or_null("/root/NetworkManager"); if _nm_ref: _nm_ref._clear_remote_nodes()
-			get_tree().change_scene_to_file("res://scenes/boss_south.tscn")
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/boss_south.tscn")
 	)
 
 func _add_wall(pos: Vector2, size: Vector2) -> void:
@@ -498,7 +503,19 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 	if has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
-			var lv = randi_range(lv_min, lv_max)
+			# FIX BUG CRÍTICO MULTIJUGADOR: antes se usaba randi_range() global,
+			# que genera un nivel DISTINTO en cada peer (servidor y cada cliente
+			# corren su propia simulación independiente). Esto hacía que cada
+			# jugador viera mobs con niveles/cantidades diferentes en el mismo
+			# camp, y rompía el matching por proximidad de _rpc_sync_enemy_list
+			# (que asume "mismo enemigo" = "misma posición", pero el nivel ya
+			# no coincidía visualmente). Con una semilla determinística por
+			# camp+slot, TODOS los peers calculan el mismo nivel para el mismo
+			# slot, sin necesidad de mandar el dato extra por red.
+			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
+			var slot_rng := RandomNumberGenerator.new()
+			slot_rng.seed = slot_seed
+			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
 				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
 				if e:
@@ -660,13 +677,24 @@ func _add_smoke_particles(pos: Vector2) -> void:
 	var img = Image.create(4, 4, false, Image.FORMAT_RGBA8); img.fill(Color.WHITE)
 	smoke.texture = ImageTexture.create_from_image(img); add_child(smoke)
 
+func _get_chest_closed_tex() -> Texture2D:
+	# BUG B FIX: goblin_chest.png es un spritesheet 5x2 (frames de 50x50);
+	# recortamos solo el primer frame para no mostrar la hoja completa.
+	var raw = _get_tex(A_CHEST_CLOSED)
+	if raw == null:
+		return null
+	var atlas := AtlasTexture.new()
+	atlas.atlas = raw
+	atlas.region = Rect2(0, 0, 50, 50)
+	return atlas
+
 func _draw_chest(pos: Vector2, ring: String, lv_min: int, lv_max: int) -> Area2D:
 	# Sprite real del cofre goblin (Void Megapack, 200x200 escalado a ~40px)
 	var sp = Sprite2D.new()
 	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sp.centered = true; sp.position = pos; sp.z_index = 6
-	sp.scale = Vector2(0.20, 0.20)
-	var tex_closed = _get_tex(A_CHEST_CLOSED)
+	sp.scale = Vector2(0.9, 0.9)
+	var tex_closed = _get_chest_closed_tex()
 	# BUG A FIX: si goblin_chest_open.png no existe, usamos chest_open.png genérico
 	var tex_open   = _get_tex(A_CHEST_OPEN)
 	if tex_open == null:
@@ -747,7 +775,11 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 	if has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
-			var lv = randi_range(lv_min, lv_max)
+			# Mismo fix de semilla determinística que en _spawn_camp (ver comentario ahí)
+			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791) ^ 0x5EED
+			var slot_rng := RandomNumberGenerator.new()
+			slot_rng.seed = slot_seed
+			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
 				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
 				if e:
@@ -836,7 +868,7 @@ func _open_chest(area: Area2D) -> void:
 		# Restituir sprite cerrado al respetar
 		if area.has_meta("chest_sprite"):
 			var csp2 = area.get_meta("chest_sprite")
-			var tclosed = _get_tex(A_CHEST_CLOSED)
+			var tclosed = _get_chest_closed_tex()
 			if is_instance_valid(csp2) and tclosed:
 				csp2.texture = tclosed
 		if glow and is_instance_valid(glow):  # FIX v19
