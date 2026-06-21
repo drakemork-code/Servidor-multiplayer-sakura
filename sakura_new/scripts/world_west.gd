@@ -567,7 +567,7 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 			# para que servidor y todos los clientes generen el mismo nivel
 			# (antes randi_range() global generaba un nivel distinto en cada
 			# peer, rompiendo el matching de enemigos entre cliente/servidor).
-			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
+			var slot_seed: int = int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
 			var slot_rng := RandomNumberGenerator.new()
 			slot_rng.seed = slot_seed
 			var lv = slot_rng.randi_range(lv_min, lv_max)
@@ -638,7 +638,7 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 			# para que servidor y todos los clientes generen el mismo nivel
 			# (antes randi_range() global generaba un nivel distinto en cada
 			# peer, rompiendo el matching de enemigos entre cliente/servidor).
-			var slot_seed := int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
+			var slot_seed: int = int(center.x) * 73856093 ^ int(center.y) * 19349663 ^ (i * 83492791)
 			var slot_rng := RandomNumberGenerator.new()
 			slot_rng.seed = slot_seed
 			var lv = slot_rng.randi_range(lv_min, lv_max)
