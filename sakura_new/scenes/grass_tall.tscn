@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://grass_tall_scene"]
+
+[ext_resource type="Script" path="res://scripts/grass_tall.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://deco_grass_wind" path="res://assets/decorations/grass_tall_wind.png" id="2_wind"]
+[ext_resource type="Texture2D" uid="uid://deco_grass_interact" path="res://assets/decorations/grass_tall_interact.png" id="3_interact"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_grass"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_wind"),
+"texture_region": Rect2(0, 0, 32, 48)
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_wind"),
+"texture_region": Rect2(32, 0, 32, 48)
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_wind"),
+"texture_region": Rect2(64, 0, 32, 48)
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_wind"),
+"texture_region": Rect2(96, 0, 32, 48)
+}],
+"loop": true,
+"name": &"wind",
+"speed": 6.667
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_interact"),
+"texture_region": Rect2(0, 0, 32, 48)
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_interact"),
+"texture_region": Rect2(32, 0, 32, 48)
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_interact"),
+"texture_region": Rect2(64, 0, 32, 48)
+}],
+"loop": false,
+"name": &"interact",
+"speed": 8.0
+}]
+
+[node name="GrassTall" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="AnimSprite" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_grass")
+animation = &"wind"
+autoplay = "wind"
+
+[node name="InteractArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractArea"]

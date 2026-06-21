@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://stone_dungeon"]
+
+[ext_resource type="Script" path="res://scripts/dungeon_scene.gd" id="1_dungeon"]
+[ext_resource type="PackedScene" uid="uid://utdhj06ec4os" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://game_ui_main" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
+
+[node name="StoneDungeon" type="Node2D"]
+script = ExtResource("1_dungeon")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+
+[node name="GameUI" parent="." instance=ExtResource("3_ui")]
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(0, 280)
+
+[node name="Floors" type="Node2D" parent="."]
+
+[node name="Decorations" type="Node2D" parent="."]
+
+[node name="Torches" type="Node2D" parent="."]
+
+[node name="BossTrigger" type="Node2D" parent="."]
+
+[node name="DungeonEnemies" type="Node2D" parent="."]

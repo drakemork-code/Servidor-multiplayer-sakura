@@ -1,0 +1,1317 @@
+[gd_scene format=3 uid="uid://5kjglmg1382q"]
+
+[ext_resource type="Script" uid="uid://b0wvwi4s8qos8" path="res://scripts/town_scene.gd" id="1_town"]
+[ext_resource type="PackedScene" uid="uid://utdhj06ec4os" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
+[ext_resource type="Texture2D" uid="uid://dc1ktmqm6yf6s" path="res://assets/buildings/bank.png" id="9_bank"]
+[ext_resource type="Texture2D" uid="uid://yoomte78r7cv" path="res://assets/buildings/dungeon.png" id="10_dungeon"]
+[ext_resource type="Texture2D" uid="uid://do2jd5afrlvn" path="res://assets/buildings/forge.png" id="11_forge"]
+[ext_resource type="Texture2D" uid="uid://6n6vq3a6a2ew" path="res://assets/buildings/market.png" id="12_market"]
+[ext_resource type="Texture2D" uid="uid://du47cs2wf0w03" path="res://assets/buildings/tailor.png" id="13_tailor"]
+[ext_resource type="Texture2D" uid="uid://cgiu6aa53cwht" path="res://assets/buildings/house_thatch.png" id="14_hthatch"]
+[ext_resource type="Texture2D" uid="uid://46t2xmbm7krn" path="res://assets/buildings/house_red.png" id="15_hred"]
+[ext_resource type="Texture2D" uid="uid://detgpgyek8w3q" path="res://assets/buildings/house_blue.png" id="16_hblue"]
+[ext_resource type="Texture2D" uid="uid://c5aobly5g2vnf" path="res://assets/buildings/bridge.png" id="17_bridge"]
+[ext_resource type="Texture2D" uid="uid://d2blnbf0e1gdm" path="res://assets/decorations/lamp_post.png" id="19_lamp"]
+[ext_resource type="Texture2D" uid="uid://cw8j17sw1km8f" path="res://assets/decorations/barrel.png" id="20_barrel"]
+[ext_resource type="Texture2D" uid="uid://ux7rfy4pixfp" path="res://assets/decorations/well.png" id="21_well"]
+[ext_resource type="Texture2D" uid="uid://l26gg7e6kief" path="res://assets/decorations/bush.png" id="22_bush"]
+[ext_resource type="Texture2D" uid="uid://c3f5l81bttgm3" path="res://assets/decorations/fence_h.png" id="23_fence_h"]
+[ext_resource type="Texture2D" uid="uid://bq0ir2kybklps" path="res://assets/decorations/fence_post.png" id="24_fence_post"]
+[ext_resource type="Texture2D" uid="uid://bkociepymrnne" path="res://assets/decorations/flower_red.png" id="25_flower_r"]
+[ext_resource type="Texture2D" uid="uid://cgaiq6e2r04kq" path="res://assets/decorations/flower_yellow.png" id="26_flower_y"]
+[ext_resource type="Texture2D" uid="uid://cossgyvh13pxk" path="res://assets/decorations/flower_purple.png" id="27_flower_p"]
+[ext_resource type="Texture2D" uid="uid://citlnoophva4l" path="res://assets/npcs/sunnyside/human_idle_strip9.png" id="35_human_idle"]
+[ext_resource type="Texture2D" uid="uid://b7bkq8ftaxwml" path="res://assets/vfx/chimneysmoke_strip30.png" id="39_chimney"]
+[ext_resource type="Texture2D" uid="uid://cw56mjsahd5jx" path="res://assets/vfx/fire_strip4.png" id="40_fire"]
+[ext_resource type="Texture2D" uid="uid://bvpyoc558qahn" path="res://assets/decorations/town_tree_a_strip4.png" id="40_tree_a"]
+[ext_resource type="Texture2D" uid="uid://dho61k1tac6yp" path="res://assets/decorations/town_tree_b_strip4.png" id="41_tree_b"]
+[ext_resource type="Script" uid="uid://bymc6kjlo1joo" path="res://scripts/resource_node.gd" id="42_resnode"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_f72b0"]
+
+[sub_resource type="TileSet" id="TileSet_f72b0"]
+tile_shape = 2
+tile_size = Vector2i(28, 17)
+physics_layer_0/collision_layer = 4294967295
+physics_layer_0/collision_mask = 4294967295
+physics_layer_0/physics_material = SubResource("PhysicsMaterial_f72b0")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5qoex"]
+size = Vector2(333, 64)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_f72b0"]
+load_path = "res://.godot/imported/spr_tileset_sunnysideworld_16px.png-d8b7971311bcab7a836aec3397b25e97.ctex"
+
+[node name="Town" type="Node2D" unique_id=791802128]
+script = ExtResource("1_town")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1368600881]
+offset_left = -950.0
+offset_top = -544.0
+offset_right = 961.0
+offset_bottom = 537.0
+color = Color(0.18, 0.29, 0.12, 1)
+
+[node name="GroundLayer" type="Node2D" parent="." unique_id=544870879]
+
+[node name="GrassTiles" type="Node2D" parent="GroundLayer" unique_id=248820416]
+
+[node name="PathV" type="ColorRect" parent="GroundLayer" unique_id=1065043359]
+z_index = -10
+offset_left = -48.0
+offset_top = -540.0
+offset_right = 48.0
+offset_bottom = 540.0
+color = Color(0.55, 0.52, 0.44, 1)
+
+[node name="PathH" type="ColorRect" parent="GroundLayer" unique_id=933944365]
+z_index = -10
+offset_left = -960.0
+offset_top = -48.0
+offset_right = 960.0
+offset_bottom = 48.0
+color = Color(0.55, 0.52, 0.44, 1)
+
+[node name="PathCross" type="ColorRect" parent="GroundLayer" unique_id=1816954708]
+z_index = -10
+offset_left = -157.0
+offset_top = -288.0
+offset_right = 163.0
+offset_bottom = 287.0
+color = Color(0.55, 0.52, 0.44, 1)
+
+[node name="PathToDungeon" type="ColorRect" parent="GroundLayer" unique_id=108356679]
+z_index = -10
+offset_left = -48.0
+offset_top = -540.0
+offset_right = 48.0
+offset_bottom = -320.0
+color = Color(0.55, 0.52, 0.44, 1)
+
+[node name="DungeonPlaza" type="ColorRect" parent="GroundLayer" unique_id=1254253356]
+z_index = -10
+offset_left = -140.0
+offset_top = -500.0
+offset_right = 260.0
+offset_bottom = -320.0
+color = Color(0.42, 0.36, 0.26, 1)
+
+[node name="BankPlaza" type="ColorRect" parent="GroundLayer" unique_id=1253582045]
+z_index = -10
+offset_left = -600.0
+offset_top = -380.0
+offset_right = -300.0
+offset_bottom = -180.0
+color = Color(0.45, 0.4, 0.3, 1)
+
+[node name="ForgePlaza" type="ColorRect" parent="GroundLayer" unique_id=956890693]
+z_index = -10
+offset_left = 486.0
+offset_top = 53.0
+offset_right = 698.0
+offset_bottom = 290.0
+color = Color(0.42, 0.36, 0.26, 1)
+
+[node name="TownCenter" type="ColorRect" parent="GroundLayer" unique_id=1229720510]
+z_index = -10
+offset_left = -195.0
+offset_top = -136.0
+offset_right = 205.0
+offset_bottom = 164.0
+color = Color(0.48, 0.43, 0.33, 1)
+
+[node name="RiverArea" type="Node2D" parent="GroundLayer" unique_id=555268199]
+
+[node name="RiverMain" type="ColorRect" parent="GroundLayer/RiverArea" unique_id=218591853]
+offset_left = -953.0
+offset_top = 150.0
+offset_right = -633.0
+offset_bottom = 509.0
+color = Color(0.15, 0.35, 0.65, 1)
+
+[node name="TileMapLayer" type="TileMapLayer" parent="GroundLayer/RiverArea/RiverMain" unique_id=676738996]
+position = Vector2(155, 67)
+tile_set = SubResource("TileSet_f72b0")
+
+[node name="RiverBank1" type="ColorRect" parent="GroundLayer/RiverArea" unique_id=263544959]
+offset_left = -960.0
+offset_top = 120.0
+offset_right = -620.0
+offset_bottom = 150.0
+color = Color(0.4, 0.34, 0.22, 1)
+
+[node name="RiverBank2" type="ColorRect" parent="GroundLayer/RiverArea" unique_id=581542205]
+offset_left = -960.0
+offset_top = 510.0
+offset_right = -620.0
+offset_bottom = 540.0
+color = Color(0.4, 0.34, 0.22, 1)
+
+[node name="RiverBank3" type="ColorRect" parent="GroundLayer/RiverArea" unique_id=1181510781]
+offset_left = -638.0
+offset_top = 557.99994
+offset_right = -199.81702
+offset_bottom = 587.99994
+rotation = -1.5760925
+color = Color(0.4, 0.34, 0.22, 1)
+
+[node name="Buildings" type="Node2D" parent="." unique_id=1679860676]
+
+[node name="Bank" type="StaticBody2D" parent="Buildings" unique_id=786597973]
+position = Vector2(-440, -270)
+
+[node name="BankSprite" type="Sprite2D" parent="Buildings/Bank" unique_id=207145133]
+position = Vector2(-10.999996, -9.000005)
+scale = Vector2(3.0416658, 2.4749997)
+texture = ExtResource("9_bank")
+
+[node name="BankLabel" type="Label" parent="Buildings/Bank" unique_id=953952303]
+offset_left = -55.0
+offset_top = -105.0
+offset_right = -55.0
+offset_bottom = -105.0
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "The Bank"
+
+[node name="BankCollision" type="CollisionShape2D" parent="Buildings/Bank" unique_id=1192204563]
+
+[node name="StoneDungeon" type="StaticBody2D" parent="Buildings" unique_id=1509672834]
+position = Vector2(120, -390)
+
+[node name="DungeonSprite" type="Sprite2D" parent="Buildings/StoneDungeon" unique_id=1144784485]
+scale = Vector2(2, 2)
+texture = ExtResource("10_dungeon")
+
+[node name="DungeonLabel" type="Label" parent="Buildings/StoneDungeon" unique_id=2051716233]
+offset_left = -85.0
+offset_top = -115.0
+offset_right = -85.0
+offset_bottom = -115.0
+theme_override_colors/font_color = Color(0.85, 0.75, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Stone Dungeon Entrance"
+
+[node name="DungeonCollision" type="CollisionShape2D" parent="Buildings/StoneDungeon" unique_id=2030490778]
+
+[node name="Forge" type="StaticBody2D" parent="Buildings" unique_id=1726754029]
+position = Vector2(591.99994, 172)
+rotation = 1.567461
+
+[node name="ForgeSprite" type="Sprite2D" parent="Buildings/Forge" unique_id=938611117]
+scale = Vector2(2, 2)
+texture = ExtResource("11_forge")
+
+[node name="ForgeLabel" type="Label" parent="Buildings/Forge" unique_id=988597057]
+offset_left = -50.0
+offset_top = -80.0
+offset_right = 50.0
+offset_bottom = -60.0
+rotation = -1.567461
+theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+text = "Herrero"
+horizontal_alignment = 1
+
+[node name="ForgeCollision" type="CollisionShape2D" parent="Buildings/Forge" unique_id=535574958]
+
+[node name="Market" type="StaticBody2D" parent="Buildings" unique_id=842176568]
+position = Vector2(388, -137)
+
+[node name="MarketSprite" type="Sprite2D" parent="Buildings/Market" unique_id=184109298]
+position = Vector2(0, -1)
+scale = Vector2(2, 2)
+texture = ExtResource("12_market")
+
+[node name="MarketCollision" type="CollisionShape2D" parent="Buildings/Market" unique_id=1325073640]
+
+[node name="Tailor" type="StaticBody2D" parent="Buildings" unique_id=1429347185]
+position = Vector2(-769.00006, -106)
+rotation = 4.6968665
+
+[node name="TailorSprite" type="Sprite2D" parent="Buildings/Tailor" unique_id=405687459]
+position = Vector2(40.995094, 0.63423246)
+rotation = 1.576094
+scale = Vector2(2, 2)
+texture = ExtResource("13_tailor")
+
+[node name="TailorCollision" type="CollisionShape2D" parent="Buildings/Tailor" unique_id=1738799077]
+
+[node name="House1" type="StaticBody2D" parent="Buildings" unique_id=1702809850]
+position = Vector2(-525, 184)
+
+[node name="House1Sprite" type="Sprite2D" parent="Buildings/House1" unique_id=800314645]
+position = Vector2(1, -1)
+scale = Vector2(2, 2)
+texture = ExtResource("14_hthatch")
+
+[node name="House1Collision" type="CollisionShape2D" parent="Buildings/House1" unique_id=2037651067]
+
+[node name="House2" type="StaticBody2D" parent="Buildings" unique_id=1610077886]
+position = Vector2(-131, 398)
+
+[node name="House2Sprite" type="Sprite2D" parent="Buildings/House2" unique_id=1211789962]
+position = Vector2(-2, -2)
+scale = Vector2(2, 2)
+texture = ExtResource("14_hthatch")
+
+[node name="House2Collision" type="CollisionShape2D" parent="Buildings/House2" unique_id=1375671160]
+
+[node name="House3" type="StaticBody2D" parent="Buildings" unique_id=1734960830]
+position = Vector2(139, 398)
+
+[node name="House3Sprite" type="Sprite2D" parent="Buildings/House3" unique_id=2137930102]
+scale = Vector2(2, 2)
+texture = ExtResource("15_hred")
+
+[node name="House3Collision" type="CollisionShape2D" parent="Buildings/House3" unique_id=1785230445]
+
+[node name="House4" type="StaticBody2D" parent="Buildings" unique_id=1393721626]
+position = Vector2(664, -127)
+
+[node name="House4Sprite" type="Sprite2D" parent="Buildings/House4" unique_id=502172601]
+scale = Vector2(2, 2)
+texture = ExtResource("16_hblue")
+
+[node name="House4Collision" type="CollisionShape2D" parent="Buildings/House4" unique_id=594645720]
+
+[node name="Bridge" type="StaticBody2D" parent="Buildings" unique_id=83435612]
+position = Vector2(-801, 313)
+
+[node name="BridgeSprite" type="Sprite2D" parent="Buildings/Bridge" unique_id=711351631]
+position = Vector2(4.749985, 0.4999963)
+scale = Vector2(5.195312, 4.03125)
+texture = ExtResource("17_bridge")
+
+[node name="BridgeCollision" type="CollisionShape2D" parent="Buildings/Bridge" unique_id=286734129]
+position = Vector2(3.5, 0)
+shape = SubResource("RectangleShape2D_5qoex")
+disabled = true
+
+[node name="Decorations" type="Node2D" parent="." unique_id=1543353774]
+
+[node name="Lamp_Center1" type="Sprite2D" parent="Decorations" unique_id=772993232]
+position = Vector2(-183, -114)
+scale = Vector2(2, 2)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_Center2" type="Sprite2D" parent="Decorations" unique_id=617457239]
+position = Vector2(173, -116)
+scale = Vector2(2, 2)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_South1" type="Sprite2D" parent="Decorations" unique_id=519333563]
+position = Vector2(-140, 200)
+scale = Vector2(2, 2)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_South2" type="Sprite2D" parent="Decorations" unique_id=918820455]
+position = Vector2(140, 200)
+scale = Vector2(2, 2)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_Bank" type="Sprite2D" parent="Decorations" unique_id=1499936008]
+position = Vector2(-329, -181.00002)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_Dungeon1" type="Sprite2D" parent="Decorations" unique_id=1093488798]
+position = Vector2(-130, -349)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("19_lamp")
+
+[node name="Lamp_Dungeon2" type="Sprite2D" parent="Decorations" unique_id=231461157]
+position = Vector2(245.00002, -353)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("19_lamp")
+
+[node name="Barrel_Bank1" type="Sprite2D" parent="Decorations" unique_id=1728803745]
+position = Vector2(-518, -162.00003)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Bank2" type="Sprite2D" parent="Decorations" unique_id=1986419170]
+position = Vector2(-585, -166.00002)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Bank3" type="Sprite2D" parent="Decorations" unique_id=1432902846]
+position = Vector2(-551, -164)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Forge1" type="Sprite2D" parent="Decorations" unique_id=1317677045]
+position = Vector2(489.69998, 157.2)
+scale = Vector2(2.4500034, 2.1000004)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Forge2" type="Sprite2D" parent="Decorations" unique_id=552990925]
+position = Vector2(479, 68)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Market1" type="Sprite2D" parent="Decorations" unique_id=782141828]
+position = Vector2(249, -77)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_House1" type="Sprite2D" parent="Decorations" unique_id=1633171515]
+position = Vector2(-611.9, 42.7)
+scale = Vector2(3.1499999, 2.7125003)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel_Blue" type="Sprite2D" parent="Decorations" unique_id=1173163372]
+position = Vector2(756, -74)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("20_barrel")
+
+[node name="Well" type="Sprite2D" parent="Decorations" unique_id=923982807]
+position = Vector2(-316, -83)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("21_well")
+
+[node name="Bush1" type="Sprite2D" parent="Decorations" unique_id=9678905]
+position = Vector2(-680, -400)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("22_bush")
+
+[node name="Bush2" type="Sprite2D" parent="Decorations" unique_id=584129060]
+position = Vector2(-653, 50.000004)
+scale = Vector2(3.2750003, 2.4625)
+texture = ExtResource("22_bush")
+
+[node name="Bush3" type="Sprite2D" parent="Decorations" unique_id=1641787736]
+position = Vector2(500, -380)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("22_bush")
+
+[node name="Bush4" type="Sprite2D" parent="Decorations" unique_id=1882804803]
+position = Vector2(780, -260)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("22_bush")
+
+[node name="Bush5" type="Sprite2D" parent="Decorations" unique_id=1975982904]
+position = Vector2(-420, 340)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("22_bush")
+
+[node name="Bush6" type="Sprite2D" parent="Decorations" unique_id=1037284665]
+position = Vector2(474.8, 270.3)
+scale = Vector2(3.649998, 3.8375003)
+texture = ExtResource("22_bush")
+
+[node name="Fence_H1a" type="Sprite2D" parent="Decorations" unique_id=439084289]
+position = Vector2(-792.5, 41)
+scale = Vector2(6.9375, 3)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H1b" type="Sprite2D" parent="Decorations" unique_id=1619122034]
+position = Vector2(-904, 41)
+scale = Vector2(7.0625, 3)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H1c" type="Sprite2D" parent="Decorations" unique_id=1183596699]
+position = Vector2(-475, 249)
+scale = Vector2(4.875001, 4.9999995)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H1d" type="Sprite2D" parent="Decorations" unique_id=740856803]
+position = Vector2(-572, 248.00002)
+scale = Vector2(4.5624986, 5.1874995)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_Post1" type="Sprite2D" parent="Decorations" unique_id=1653732528]
+position = Vector2(-903, 20)
+scale = Vector2(4.625, 3.6875)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence_Post2" type="Sprite2D" parent="Decorations" unique_id=725526654]
+position = Vector2(-743, 24.500004)
+scale = Vector2(2.5, 3.1875)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence_Post3" type="Sprite2D" parent="Decorations" unique_id=1455249993]
+position = Vector2(-440, 196)
+scale = Vector2(2, 2)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence_Post4" type="Sprite2D" parent="Decorations" unique_id=124717619]
+position = Vector2(-440, 221)
+scale = Vector2(2, 2)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence_H2a" type="Sprite2D" parent="Decorations" unique_id=1800633963]
+position = Vector2(-100.75, -295.00003)
+scale = Vector2(7.0937505, 3.6250014)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H2a2" type="Sprite2D" parent="Decorations" unique_id=1899268242]
+position = Vector2(103, -297)
+scale = Vector2(7.3750005, 3.6250014)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H2b" type="Sprite2D" parent="Decorations" unique_id=869166995]
+position = Vector2(-137.00056, -240.60565)
+rotation = -4.710944
+scale = Vector2(5.2718167, 5.355366)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_H2b2" type="Sprite2D" parent="Decorations" unique_id=36282112]
+position = Vector2(-136.93091, -171.70839)
+rotation = -4.710944
+scale = Vector2(4.3573728, 5.0908785)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence_Post5" type="Sprite2D" parent="Decorations" unique_id=1096065375]
+position = Vector2(159, -183)
+scale = Vector2(2, 2)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence_Post6" type="Sprite2D" parent="Decorations" unique_id=282787599]
+position = Vector2(159, -151)
+scale = Vector2(2, 2)
+texture = ExtResource("24_fence_post")
+
+[node name="Flower_R1" type="Sprite2D" parent="Decorations" unique_id=1875475144]
+position = Vector2(-566.00006, 276)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower_R2" type="Sprite2D" parent="Decorations" unique_id=543548296]
+position = Vector2(-415, 200)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower_Y1" type="Sprite2D" parent="Decorations" unique_id=1126940694]
+position = Vector2(-190, -164)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower_Y2" type="Sprite2D" parent="Decorations" unique_id=2047712437]
+position = Vector2(-260, -212.00002)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower_P1" type="Sprite2D" parent="Decorations" unique_id=331306246]
+position = Vector2(-247.00002, -232)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower_P2" type="Sprite2D" parent="Decorations" unique_id=1233857302]
+position = Vector2(-259, -185)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower_R3" type="Sprite2D" parent="Decorations" unique_id=1724286510]
+position = Vector2(-550.00006, 373)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower_Y3" type="Sprite2D" parent="Decorations" unique_id=77410856]
+position = Vector2(-549, 362)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("26_flower_y")
+
+[node name="Trees" type="Node2D" parent="Decorations" unique_id=764084378]
+
+[node name="Tree1" type="Sprite2D" parent="Decorations/Trees" unique_id=1909184811]
+z_index = 13
+texture_filter = 1
+position = Vector2(-908.5, -525.5)
+scale = Vector2(1.4479158, 1.4999999)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree2" type="Sprite2D" parent="Decorations/Trees" unique_id=427180160]
+z_index = 10
+texture_filter = 1
+position = Vector2(-792, -522)
+scale = Vector2(1.4523809, 1.5155039)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree3" type="Sprite2D" parent="Decorations/Trees" unique_id=2076576632]
+z_index = 12
+texture_filter = 1
+position = Vector2(-677, -500.00003)
+scale = Vector2(1.6875, 1.7745098)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree4" type="Sprite2D" parent="Decorations/Trees" unique_id=1534510438]
+z_index = 11
+texture_filter = 1
+position = Vector2(-825, -464.99997)
+scale = Vector2(2.0119047, 1.6937984)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree5" type="Sprite2D" parent="Decorations/Trees" unique_id=2065696829]
+z_index = 13
+texture_filter = 1
+position = Vector2(-890.00006, -366)
+scale = Vector2(1.625, 1.6078432)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree6" type="Sprite2D" parent="Decorations/Trees" unique_id=1188734571]
+z_index = 12
+texture_filter = 1
+position = Vector2(200, -440)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree7" type="Sprite2D" parent="Decorations/Trees" unique_id=396271279]
+z_index = 10
+texture_filter = 1
+position = Vector2(340, -460)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree8" type="Sprite2D" parent="Decorations/Trees" unique_id=1005924458]
+z_index = 13
+texture_filter = 1
+position = Vector2(480, -430)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree9" type="Sprite2D" parent="Decorations/Trees" unique_id=744528548]
+z_index = 11
+texture_filter = 1
+position = Vector2(620, -450)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree10" type="Sprite2D" parent="Decorations/Trees" unique_id=123405072]
+z_index = 15
+texture_filter = 1
+position = Vector2(760, -420)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree11" type="Sprite2D" parent="Decorations/Trees" unique_id=1708266665]
+z_index = 12
+texture_filter = 1
+position = Vector2(880, -440)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree12" type="Sprite2D" parent="Decorations/Trees" unique_id=765403927]
+z_index = 32
+texture_filter = 1
+position = Vector2(-913, -282)
+scale = Vector2(2.1666667, 2.127907)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree13" type="Sprite2D" parent="Decorations/Trees" unique_id=2097030109]
+z_index = 57
+texture_filter = 1
+position = Vector2(-893.99994, -107)
+scale = Vector2(1.6354167, 1.7009805)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree14" type="Sprite2D" parent="Decorations/Trees" unique_id=1622691517]
+z_index = 83
+texture_filter = 1
+position = Vector2(-871, 47)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree15" type="Sprite2D" parent="Decorations/Trees" unique_id=1725317732]
+z_index = 108
+texture_filter = 1
+position = Vector2(-769, 65)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree16" type="Sprite2D" parent="Decorations/Trees" unique_id=1016168907]
+z_index = 128
+texture_filter = 1
+position = Vector2(-501, 348)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree17" type="Sprite2D" parent="Decorations/Trees" unique_id=702558577]
+z_index = 115
+texture_filter = 1
+position = Vector2(-475, 320)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree18" type="Sprite2D" parent="Decorations/Trees" unique_id=671192691]
+z_index = 118
+texture_filter = 1
+position = Vector2(-550, 410)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree19" type="Sprite2D" parent="Decorations/Trees" unique_id=1215831787]
+z_index = 125
+texture_filter = 1
+position = Vector2(-563, 312)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree20" type="Sprite2D" parent="Decorations/Trees" unique_id=972646180]
+z_index = 32
+texture_filter = 1
+position = Vector2(780, -280)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree21" type="Sprite2D" parent="Decorations/Trees" unique_id=1956958344]
+z_index = 55
+texture_filter = 1
+position = Vector2(860, -100)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree22" type="Sprite2D" parent="Decorations/Trees" unique_id=398210328]
+z_index = 82
+texture_filter = 1
+position = Vector2(825, 134)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree23" type="Sprite2D" parent="Decorations/Trees" unique_id=1469653801]
+z_index = 110
+texture_filter = 1
+position = Vector2(800, 340)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree24" type="Sprite2D" parent="Decorations/Trees" unique_id=103512080]
+z_index = 127
+texture_filter = 1
+position = Vector2(760, 480)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree25" type="Sprite2D" parent="Decorations/Trees" unique_id=1898743305]
+z_index = 128
+texture_filter = 1
+position = Vector2(-489, 448)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree26" type="Sprite2D" parent="Decorations/Trees" unique_id=1904919257]
+z_index = 130
+texture_filter = 1
+position = Vector2(-560, 500)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree27" type="Sprite2D" parent="Decorations/Trees" unique_id=1714664551]
+z_index = 128
+texture_filter = 1
+position = Vector2(-400, 490)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree28" type="Sprite2D" parent="Decorations/Trees" unique_id=1258581798]
+z_index = 130
+texture_filter = 1
+position = Vector2(-240, 500)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree29" type="Sprite2D" parent="Decorations/Trees" unique_id=1924024900]
+z_index = 128
+texture_filter = 1
+position = Vector2(90, 490)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree30" type="Sprite2D" parent="Decorations/Trees" unique_id=1904906511]
+z_index = 130
+texture_filter = 1
+position = Vector2(220, 500)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Tree31" type="Sprite2D" parent="Decorations/Trees" unique_id=897324306]
+z_index = 128
+texture_filter = 1
+position = Vector2(400, 490)
+texture = ExtResource("41_tree_b")
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree32" type="Sprite2D" parent="Decorations/Trees" unique_id=379269735]
+z_index = 130
+texture_filter = 1
+position = Vector2(560, 500)
+texture = ExtResource("40_tree_a")
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 102)
+
+[node name="Fences" type="Node2D" parent="Decorations" unique_id=516120762]
+
+[node name="Fence1" type="Sprite2D" parent="Decorations/Fences" unique_id=192641460]
+z_index = 5
+texture_filter = 1
+position = Vector2(-320, -340)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence2" type="Sprite2D" parent="Decorations/Fences" unique_id=1302478996]
+z_index = 5
+texture_filter = 1
+position = Vector2(-370, -340)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence3" type="Sprite2D" parent="Decorations/Fences" unique_id=159703866]
+z_index = 5
+texture_filter = 1
+position = Vector2(-420, -340)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence4" type="Sprite2D" parent="Decorations/Fences" unique_id=255296765]
+z_index = 5
+texture_filter = 1
+position = Vector2(-470, -340)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence5" type="Sprite2D" parent="Decorations/Fences" unique_id=1462613502]
+z_index = 5
+texture_filter = 1
+position = Vector2(500, 160)
+rotation = 1.5708
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence6" type="Sprite2D" parent="Decorations/Fences" unique_id=715941593]
+z_index = 5
+texture_filter = 1
+position = Vector2(500, 210)
+rotation = 1.5708
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence7" type="Sprite2D" parent="Decorations/Fences" unique_id=117964956]
+z_index = 5
+texture_filter = 1
+position = Vector2(500, 260)
+rotation = 1.5708
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("24_fence_post")
+
+[node name="Fence8" type="Sprite2D" parent="Decorations/Fences" unique_id=52620969]
+z_index = 5
+texture_filter = 1
+position = Vector2(-690, -165)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence9" type="Sprite2D" parent="Decorations/Fences" unique_id=290246917]
+z_index = 5
+texture_filter = 1
+position = Vector2(-740, -165)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Fence10" type="Sprite2D" parent="Decorations/Fences" unique_id=860714891]
+z_index = 5
+texture_filter = 1
+position = Vector2(-790, -165)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("23_fence_h")
+
+[node name="Flowers" type="Node2D" parent="Decorations" unique_id=991162346]
+
+[node name="Flower1" type="Sprite2D" parent="Decorations/Flowers" unique_id=1489575508]
+z_index = 6
+texture_filter = 1
+position = Vector2(160, -320)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower2" type="Sprite2D" parent="Decorations/Flowers" unique_id=489116101]
+z_index = 6
+texture_filter = 1
+position = Vector2(200, -310)
+scale = Vector2(2, 2)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower3" type="Sprite2D" parent="Decorations/Flowers" unique_id=327970069]
+z_index = 6
+texture_filter = 1
+position = Vector2(185, -330)
+scale = Vector2(2, 2)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower4" type="Sprite2D" parent="Decorations/Flowers" unique_id=468727326]
+z_index = 6
+texture_filter = 1
+position = Vector2(-300, 320)
+scale = Vector2(2, 2)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower5" type="Sprite2D" parent="Decorations/Flowers" unique_id=655724955]
+z_index = 6
+texture_filter = 1
+position = Vector2(-320, 310)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower6" type="Sprite2D" parent="Decorations/Flowers" unique_id=663208516]
+z_index = 6
+texture_filter = 1
+position = Vector2(-285, 335)
+scale = Vector2(2, 2)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower7" type="Sprite2D" parent="Decorations/Flowers" unique_id=1703385019]
+z_index = 6
+texture_filter = 1
+position = Vector2(700, -220)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower8" type="Sprite2D" parent="Decorations/Flowers" unique_id=1691875181]
+z_index = 6
+texture_filter = 1
+position = Vector2(720, -208)
+scale = Vector2(2, 2)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower9" type="Sprite2D" parent="Decorations/Flowers" unique_id=1130763104]
+z_index = 6
+texture_filter = 1
+position = Vector2(-355, 328)
+scale = Vector2(2, 2)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower10" type="Sprite2D" parent="Decorations/Flowers" unique_id=29264177]
+z_index = 6
+texture_filter = 1
+position = Vector2(-575, 431)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower11" type="Sprite2D" parent="Decorations/Flowers" unique_id=360570393]
+z_index = 6
+texture_filter = 1
+position = Vector2(50, 420)
+scale = Vector2(2, 2)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower12" type="Sprite2D" parent="Decorations/Flowers" unique_id=1547393354]
+z_index = 6
+texture_filter = 1
+position = Vector2(70, 435)
+scale = Vector2(2, 2)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower13" type="Sprite2D" parent="Decorations/Flowers" unique_id=1844438753]
+z_index = 6
+texture_filter = 1
+position = Vector2(30, 410)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower14" type="Sprite2D" parent="Decorations/Flowers" unique_id=1895639589]
+z_index = 6
+texture_filter = 1
+position = Vector2(-620, -430)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Flower15" type="Sprite2D" parent="Decorations/Flowers" unique_id=1098799544]
+z_index = 6
+texture_filter = 1
+position = Vector2(-640, -415)
+scale = Vector2(2, 2)
+texture = ExtResource("26_flower_y")
+
+[node name="Flower16" type="Sprite2D" parent="Decorations/Flowers" unique_id=1785955900]
+z_index = 6
+texture_filter = 1
+position = Vector2(450, 400)
+scale = Vector2(2, 2)
+texture = ExtResource("27_flower_p")
+
+[node name="Flower17" type="Sprite2D" parent="Decorations/Flowers" unique_id=211162025]
+z_index = 6
+texture_filter = 1
+position = Vector2(470, 415)
+scale = Vector2(2, 2)
+texture = ExtResource("25_flower_r")
+
+[node name="Barrels" type="Node2D" parent="Decorations" unique_id=1844450387]
+
+[node name="Barrel1" type="Sprite2D" parent="Decorations/Barrels" unique_id=2045867132]
+z_index = 95
+texture_filter = 1
+position = Vector2(660, 220)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel2" type="Sprite2D" parent="Decorations/Barrels" unique_id=787585210]
+z_index = 98
+texture_filter = 1
+position = Vector2(680, 245)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel3" type="Sprite2D" parent="Decorations/Barrels" unique_id=1070007495]
+z_index = 107
+texture_filter = 1
+position = Vector2(540, 320)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel4" type="Sprite2D" parent="Decorations/Barrels" unique_id=867952266]
+z_index = 48
+texture_filter = 1
+position = Vector2(-440, -155)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel5" type="Sprite2D" parent="Decorations/Barrels" unique_id=625662961]
+z_index = 48
+texture_filter = 1
+position = Vector2(-415, -155)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Barrel6" type="Sprite2D" parent="Decorations/Barrels" unique_id=173321826]
+z_index = 47
+texture_filter = 1
+position = Vector2(820, -160)
+scale = Vector2(2.2, 2.2)
+texture = ExtResource("20_barrel")
+
+[node name="Well2" type="Sprite2D" parent="Decorations" unique_id=1544954650]
+z_index = 10
+texture_filter = 1
+position = Vector2(-80, 60)
+scale = Vector2(2.8, 2.8)
+texture = ExtResource("21_well")
+
+[node name="Bushes" type="Node2D" parent="Decorations" unique_id=371927857]
+
+[node name="Bush1" type="Sprite2D" parent="Decorations/Bushes" unique_id=523642221]
+z_index = 60
+texture_filter = 1
+position = Vector2(-913.00006, -23)
+scale = Vector2(3.187499, 2.875)
+texture = ExtResource("22_bush")
+
+[node name="Bush2" type="Sprite2D" parent="Decorations/Bushes" unique_id=1559055198]
+z_index = 77
+texture_filter = 1
+position = Vector2(820, 80)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="Bush3" type="Sprite2D" parent="Decorations/Bushes" unique_id=672197457]
+z_index = 122
+texture_filter = 1
+position = Vector2(340, 440)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="Bush4" type="Sprite2D" parent="Decorations/Bushes" unique_id=1945856374]
+z_index = 121
+texture_filter = 1
+position = Vector2(-200, 430)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="Bush5" type="Sprite2D" parent="Decorations/Bushes" unique_id=1918043859]
+z_index = 126
+texture_filter = 1
+position = Vector2(-580, 377)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="Bush6" type="Sprite2D" parent="Decorations/Bushes" unique_id=1664693495]
+z_index = 12
+texture_filter = 1
+position = Vector2(840, -440)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="Bush7" type="Sprite2D" parent="Decorations/Bushes" unique_id=274244645]
+z_index = 11
+texture_filter = 1
+position = Vector2(-525, -482)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("22_bush")
+
+[node name="NPCSprites" type="Node2D" parent="." unique_id=610474943]
+
+[node name="Guard1" type="Sprite2D" parent="NPCSprites" unique_id=862300814]
+texture_filter = 1
+position = Vector2(38, -338)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+
+[node name="Guard2" type="Sprite2D" parent="NPCSprites" unique_id=161925268]
+texture_filter = 1
+position = Vector2(199, -330)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 2
+
+[node name="NpcBanker" type="Sprite2D" parent="NPCSprites" unique_id=1843816704]
+texture_filter = 1
+position = Vector2(-454.00006, -176)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 4
+
+[node name="NpcSmith" type="Sprite2D" parent="NPCSprites" unique_id=2061457023]
+texture_filter = 1
+position = Vector2(504, 109)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 6
+
+[node name="NpcHerb" type="Sprite2D" parent="NPCSprites" unique_id=1155540347]
+texture_filter = 1
+position = Vector2(661, -50)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 1
+
+[node name="NpcTailor" type="Sprite2D" parent="NPCSprites" unique_id=1716540013]
+texture_filter = 1
+position = Vector2(-788.00006, -79.00001)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 3
+
+[node name="NpcMale1" type="Sprite2D" parent="NPCSprites" unique_id=417428471]
+texture_filter = 1
+position = Vector2(-169.00003, 449)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 5
+
+[node name="NpcMale2" type="Sprite2D" parent="NPCSprites" unique_id=1881559089]
+texture_filter = 1
+position = Vector2(-527, 265)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 7
+
+[node name="NpcFemale1" type="Sprite2D" parent="NPCSprites" unique_id=1884084146]
+texture_filter = 1
+position = Vector2(133.00002, 474)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+
+[node name="NpcFemale2" type="Sprite2D" parent="NPCSprites" unique_id=1654513910]
+texture_filter = 1
+position = Vector2(-481, 279)
+scale = Vector2(3.5, 3.5)
+texture = ExtResource("35_human_idle")
+hframes = 9
+frame = 2
+
+[node name="VFX" type="Node2D" parent="." unique_id=896688137]
+
+[node name="ForgeSmoke1" type="Sprite2D" parent="VFX" unique_id=1142945903]
+texture_filter = 1
+position = Vector2(575, 110)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("39_chimney")
+hframes = 30
+
+[node name="ForgeSmoke2" type="Sprite2D" parent="VFX" unique_id=440631776]
+texture_filter = 1
+position = Vector2(620, 90)
+scale = Vector2(2, 2)
+texture = ExtResource("39_chimney")
+hframes = 30
+frame = 10
+
+[node name="DungeonFire1" type="Sprite2D" parent="VFX" unique_id=660880365]
+texture_filter = 1
+position = Vector2(-130, -440)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("40_fire")
+hframes = 4
+
+[node name="DungeonFire2" type="Sprite2D" parent="VFX" unique_id=714041386]
+texture_filter = 1
+position = Vector2(250, -440)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("40_fire")
+hframes = 4
+frame = 2
+
+[node name="NPCs" type="Node2D" parent="." unique_id=2087174853]
+
+[node name="Player" parent="." unique_id=1786037871 instance=ExtResource("2_player")]
+position = Vector2(0, 80)
+
+[node name="GameUI" parent="." unique_id=1425416619 instance=ExtResource("3_ui")]
+
+[node name="ResourceNodes" type="Node2D" parent="." unique_id=637481844]
+
+[node name="Arbol1" type="Node2D" parent="ResourceNodes" unique_id=972170866]
+position = Vector2(-308, 196)
+script = ExtResource("42_resnode")
+resource_type = "tree"
+item_key = "wood_log"
+respawn_time = 40.0
+
+[node name="Arbol2" type="Node2D" parent="ResourceNodes" unique_id=1589220535]
+position = Vector2(-680, -200)
+script = ExtResource("42_resnode")
+resource_type = "tree"
+item_key = "wood_log"
+respawn_time = 40.0
+
+[node name="Arbol3" type="Node2D" parent="ResourceNodes" unique_id=947128621]
+position = Vector2(660, 250)
+script = ExtResource("42_resnode")
+resource_type = "tree"
+item_key = "wood_log"
+qty_min = 2
+qty_max = 4
+respawn_time = 40.0
+node_tier = 2
+
+[node name="Mineral1" type="Node2D" parent="ResourceNodes" unique_id=1570219655]
+position = Vector2(-363, 394)
+script = ExtResource("42_resnode")
+resource_type = "iron_ore"
+item_key = "ore_iron"
+qty_max = 2
+respawn_time = 60.0
+
+[node name="Sprite2D" type="Sprite2D" parent="ResourceNodes/Mineral1" unique_id=313650946]
+position = Vector2(9, -8)
+scale = Vector2(1.6875, 1.625)
+texture = SubResource("CompressedTexture2D_f72b0")
+region_enabled = true
+region_rect = Rect2(784, 336, 32, 32)
+
+[node name="Mineral2" type="Node2D" parent="ResourceNodes" unique_id=349078087]
+position = Vector2(603, -264)
+script = ExtResource("42_resnode")
+resource_type = "iron_ore"
+item_key = "ore_iron"
+qty_max = 2
+respawn_time = 60.0
+
+[node name="Sprite2D" type="Sprite2D" parent="ResourceNodes/Mineral2" unique_id=670472673]
+position = Vector2(9, -8)
+scale = Vector2(1.6875, 1.625)
+texture = SubResource("CompressedTexture2D_f72b0")
+region_enabled = true
+region_rect = Rect2(784, 336, 32, 32)
+
+[node name="Hierba1" type="Node2D" parent="ResourceNodes" unique_id=1663689451]
+position = Vector2(360, 355)
+script = ExtResource("42_resnode")
+respawn_time = 25.0
+herb_variant = "herb_kale"
+
+[node name="Hierba2" type="Node2D" parent="ResourceNodes" unique_id=384250000]
+position = Vector2(410, 340)
+script = ExtResource("42_resnode")
+respawn_time = 25.0
+herb_variant = "herb_kale"
+
+[node name="Hierba3" type="Node2D" parent="ResourceNodes" unique_id=838430895]
+position = Vector2(-250, -310)
+script = ExtResource("42_resnode")
+respawn_time = 25.0
+herb_variant = "herb_kale"
+
+[node name="Hierba4" type="Node2D" parent="ResourceNodes" unique_id=813166523]
+position = Vector2(-300, -280)
+script = ExtResource("42_resnode")
+respawn_time = 25.0
+herb_variant = "herb_sunflower"
+
+[node name="Hierba5" type="Node2D" parent="ResourceNodes" unique_id=247943179]
+position = Vector2(290, 390)
+script = ExtResource("42_resnode")
+respawn_time = 25.0
+herb_variant = "herb_sunflower"
+
+[node name="Hongo1" type="Node2D" parent="ResourceNodes" unique_id=87146338]
+position = Vector2(-200, -90)
+script = ExtResource("42_resnode")
+resource_type = "mushroom"
+item_key = "material_mushroom"
+
+[node name="Hongo2" type="Node2D" parent="ResourceNodes" unique_id=1128468716]
+position = Vector2(450, -300)
+script = ExtResource("42_resnode")
+resource_type = "mushroom"
+item_key = "material_mushroom"
+qty_max = 2
+
+[node name="BorderTriggers" type="Node2D" parent="." unique_id=1779248778]
+
+[node name="NorthBorder" type="Area2D" parent="BorderTriggers" unique_id=1063993373]
+position = Vector2(-1, -542)
+
+[node name="NorthShape" type="CollisionShape2D" parent="BorderTriggers/NorthBorder" unique_id=610937835]
+
+[node name="SouthBorder" type="Area2D" parent="BorderTriggers" unique_id=371074052]
+position = Vector2(0, 540)
+
+[node name="SouthShape" type="CollisionShape2D" parent="BorderTriggers/SouthBorder" unique_id=1175847484]
+
+[node name="EastBorder" type="Area2D" parent="BorderTriggers" unique_id=1599511514]
+position = Vector2(960, 0)
+
+[node name="EastShape" type="CollisionShape2D" parent="BorderTriggers/EastBorder" unique_id=2102550567]
+
+[node name="WestBorder" type="Area2D" parent="BorderTriggers" unique_id=2016177574]
+position = Vector2(-960, 0)
+
+[node name="WestShape" type="CollisionShape2D" parent="BorderTriggers/WestBorder" unique_id=426013300]

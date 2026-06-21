@@ -1,0 +1,54 @@
+[gd_scene load_steps=4 format=3 uid="uid://utdhj06ec4os"]
+
+[ext_resource type="Script" uid="uid://b3qy10m36c6k3" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(14, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2"]
+size = Vector2(48, 48)
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_player")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -16)
+scale = Vector2(3.5, 3.5)
+hframes = 9
+frame = 0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2.5, 2.5)
+position_smoothing_enabled = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_1")
+
+[node name="InteractionArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("RectangleShape2D_2")
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -30.0
+offset_top = -82.0
+offset_right = 46.0
+offset_bottom = -58.0
+text = "Jugador"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HPBar" type="ProgressBar" parent="."]
+offset_left = -29.0
+offset_top = -56.0
+offset_right = 37.0
+offset_bottom = -46.0
+value = 100.0
+show_percentage = false
+
+[connection signal="body_entered" from="InteractionArea" to="." method="_on_interaction_area_body_entered"]
+[connection signal="body_exited" from="InteractionArea" to="." method="_on_interaction_area_body_exited"]

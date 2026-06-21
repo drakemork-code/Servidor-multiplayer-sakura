@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://boss_east_arena"]
+
+[ext_resource type="Script" path="res://scripts/boss_east.gd" id="1_east"]
+
+[node name="BossEast" type="Node2D"]
+script = ExtResource("1_east")
+
+[node name="Arena" type="Node2D" parent="."]

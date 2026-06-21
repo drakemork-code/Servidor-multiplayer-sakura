@@ -566,17 +566,17 @@ func _check_attack_hit() -> void:
 			var knockback = (parent.global_position - global_position).normalized()
 			var nm = get_node_or_null("/root/NetworkManager")
 			var nid = parent.get("network_id") if parent.get("network_id") != null else 0
-				if nm and nm.is_client:
-					if nid != 0:
-						print("[Client][Combat] Autoataque → nid=%d atk=%d" % [nid, atk])
-						nm.request_enemy_damage(nid, atk, knockback)
-					else:
-						print("[Client][Combat] nid=0 — re-sync")
-						nm._send_my_state()
-						if parent.has_method("take_damage"):
-							parent.take_damage(atk, knockback)
-				elif parent.has_method("take_damage"):
-					parent.take_damage(atk, knockback)
+			if nm and nm.is_client:
+				if nid != 0:
+					print("[Client][Combat] Autoataque → nid=%d atk=%d" % [nid, atk])
+					nm.request_enemy_damage(nid, atk, knockback)
+				else:
+					print("[Client][Combat] nid=0 — re-sync")
+					nm._send_my_state()
+					if parent.has_method("take_damage"):
+						parent.take_damage(atk, knockback)
+			elif parent.has_method("take_damage"):
+				parent.take_damage(atk, knockback)
 			hit_any = true
 	
 	var particle_color = Color.YELLOW if hit_any else Color(1, 1, 1, 0.5)

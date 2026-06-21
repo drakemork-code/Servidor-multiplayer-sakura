@@ -1,0 +1,670 @@
+[gd_scene load_steps=5 format=3 uid="uid://world_south"]
+
+[ext_resource type="Script" path="res://scripts/world_south.gd" id="1_south"]
+[ext_resource type="PackedScene" uid="uid://utdhj06ec4os" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://game_ui_main" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
+[ext_resource type="Texture2D" path="res://assets/decorations/town_tree_b_strip4.png" id="4_tree_b"]
+
+[node name="WorldSouth" type="Node2D"]
+script = ExtResource("1_south")
+
+
+[node name="Decorations" type="Node2D" parent="."]
+
+[node name="Trees" type="Node2D" parent="Decorations"]
+
+[node name="Tree1" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2600, -1900)
+texture = ExtResource("4_tree_b")
+z_index = 11
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree2" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2200, -1950)
+texture = ExtResource("4_tree_b")
+z_index = 6
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree3" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1800, -1850)
+texture = ExtResource("4_tree_b")
+z_index = 16
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree4" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1400, -1900)
+texture = ExtResource("4_tree_b")
+z_index = 11
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree5" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-900, -1950)
+texture = ExtResource("4_tree_b")
+z_index = 6
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree6" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-400, -1970)
+texture = ExtResource("4_tree_b")
+z_index = 4
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree7" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(0, -1980)
+texture = ExtResource("4_tree_b")
+z_index = 3
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree8" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(400, -1970)
+texture = ExtResource("4_tree_b")
+z_index = 4
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree9" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(900, -1950)
+texture = ExtResource("4_tree_b")
+z_index = 6
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree10" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1400, -1900)
+texture = ExtResource("4_tree_b")
+z_index = 11
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree11" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1800, -1850)
+texture = ExtResource("4_tree_b")
+z_index = 16
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree12" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2200, -1950)
+texture = ExtResource("4_tree_b")
+z_index = 6
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree13" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2600, -1900)
+texture = ExtResource("4_tree_b")
+z_index = 11
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree14" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2800, -1700)
+texture = ExtResource("4_tree_b")
+z_index = 31
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree15" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2400, -1750)
+texture = ExtResource("4_tree_b")
+z_index = 26
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree16" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2000, -1800)
+texture = ExtResource("4_tree_b")
+z_index = 21
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree17" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2000, -1800)
+texture = ExtResource("4_tree_b")
+z_index = 21
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree18" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2400, -1750)
+texture = ExtResource("4_tree_b")
+z_index = 26
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree19" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2800, -1700)
+texture = ExtResource("4_tree_b")
+z_index = 31
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree20" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2700, -1600)
+texture = ExtResource("4_tree_b")
+z_index = 41
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree21" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2300, -1650)
+texture = ExtResource("4_tree_b")
+z_index = 36
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree22" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2300, -1650)
+texture = ExtResource("4_tree_b")
+z_index = 36
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree23" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2700, -1600)
+texture = ExtResource("4_tree_b")
+z_index = 41
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree24" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2700, -900)
+texture = ExtResource("4_tree_b")
+z_index = 111
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree25" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2300, -700)
+texture = ExtResource("4_tree_b")
+z_index = 131
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree26" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1900, -800)
+texture = ExtResource("4_tree_b")
+z_index = 121
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree27" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1500, -600)
+texture = ExtResource("4_tree_b")
+z_index = 141
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree28" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-900, -750)
+texture = ExtResource("4_tree_b")
+z_index = 126
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree29" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-300, -850)
+texture = ExtResource("4_tree_b")
+z_index = 116
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree30" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(300, -850)
+texture = ExtResource("4_tree_b")
+z_index = 116
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree31" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(900, -750)
+texture = ExtResource("4_tree_b")
+z_index = 126
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree32" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1500, -600)
+texture = ExtResource("4_tree_b")
+z_index = 141
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree33" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1900, -800)
+texture = ExtResource("4_tree_b")
+z_index = 121
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree34" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2300, -700)
+texture = ExtResource("4_tree_b")
+z_index = 131
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree35" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2700, -900)
+texture = ExtResource("4_tree_b")
+z_index = 111
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree36" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2500, -500)
+texture = ExtResource("4_tree_b")
+z_index = 151
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree37" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2100, -600)
+texture = ExtResource("4_tree_b")
+z_index = 141
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree38" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1700, -450)
+texture = ExtResource("4_tree_b")
+z_index = 156
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree39" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1300, -700)
+texture = ExtResource("4_tree_b")
+z_index = 131
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree40" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-700, -500)
+texture = ExtResource("4_tree_b")
+z_index = 151
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree41" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(700, -500)
+texture = ExtResource("4_tree_b")
+z_index = 151
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree42" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1300, -700)
+texture = ExtResource("4_tree_b")
+z_index = 131
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree43" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1700, -450)
+texture = ExtResource("4_tree_b")
+z_index = 156
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree44" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2100, -600)
+texture = ExtResource("4_tree_b")
+z_index = 141
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree45" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2500, -500)
+texture = ExtResource("4_tree_b")
+z_index = 151
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree46" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2800, -350)
+texture = ExtResource("4_tree_b")
+z_index = 166
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree47" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2800, -350)
+texture = ExtResource("4_tree_b")
+z_index = 166
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree48" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2700, 300)
+texture = ExtResource("4_tree_b")
+z_index = 231
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree49" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2300, 400)
+texture = ExtResource("4_tree_b")
+z_index = 241
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree50" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1900, 200)
+texture = ExtResource("4_tree_b")
+z_index = 221
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree51" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1400, 500)
+texture = ExtResource("4_tree_b")
+z_index = 251
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree52" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-800, 300)
+texture = ExtResource("4_tree_b")
+z_index = 231
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree53" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-200, 600)
+texture = ExtResource("4_tree_b")
+z_index = 261
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree54" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(200, 600)
+texture = ExtResource("4_tree_b")
+z_index = 261
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree55" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(800, 300)
+texture = ExtResource("4_tree_b")
+z_index = 231
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree56" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1400, 500)
+texture = ExtResource("4_tree_b")
+z_index = 251
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree57" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1900, 200)
+texture = ExtResource("4_tree_b")
+z_index = 221
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree58" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2300, 400)
+texture = ExtResource("4_tree_b")
+z_index = 241
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree59" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2700, 300)
+texture = ExtResource("4_tree_b")
+z_index = 231
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree60" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2500, 700)
+texture = ExtResource("4_tree_b")
+z_index = 271
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree61" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2500, 700)
+texture = ExtResource("4_tree_b")
+z_index = 271
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree62" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2600, 100)
+texture = ExtResource("4_tree_b")
+z_index = 211
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree63" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2600, 100)
+texture = ExtResource("4_tree_b")
+z_index = 211
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree64" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2100, 350)
+texture = ExtResource("4_tree_b")
+z_index = 236
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree65" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1600, 250)
+texture = ExtResource("4_tree_b")
+z_index = 226
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree66" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1100, 450)
+texture = ExtResource("4_tree_b")
+z_index = 246
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree67" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-500, 200)
+texture = ExtResource("4_tree_b")
+z_index = 221
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree68" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(500, 200)
+texture = ExtResource("4_tree_b")
+z_index = 221
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree69" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1100, 450)
+texture = ExtResource("4_tree_b")
+z_index = 246
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree70" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1600, 250)
+texture = ExtResource("4_tree_b")
+z_index = 226
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree71" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2100, 350)
+texture = ExtResource("4_tree_b")
+z_index = 236
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree72" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1800, 600)
+texture = ExtResource("4_tree_b")
+z_index = 261
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree73" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1800, 600)
+texture = ExtResource("4_tree_b")
+z_index = 261
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree74" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-900, 700)
+texture = ExtResource("4_tree_b")
+z_index = 271
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree75" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(900, 700)
+texture = ExtResource("4_tree_b")
+z_index = 271
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree76" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-2400, 500)
+texture = ExtResource("4_tree_b")
+z_index = 251
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree77" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(2400, 500)
+texture = ExtResource("4_tree_b")
+z_index = 251
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree78" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1100, -1700)
+texture = ExtResource("4_tree_b")
+z_index = 31
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree79" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(950, -1750)
+texture = ExtResource("4_tree_b")
+z_index = 26
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree80" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(50, -1950)
+texture = ExtResource("4_tree_b")
+z_index = 6
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree81" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(-1000, -250)
+texture = ExtResource("4_tree_b")
+z_index = 176
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)
+
+[node name="Tree82" type="Sprite2D" parent="Decorations/Trees"]
+position = Vector2(1100, -150)
+texture = ExtResource("4_tree_b")
+z_index = 186
+texture_filter = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 84, 129)

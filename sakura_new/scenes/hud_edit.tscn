@@ -1,0 +1,363 @@
+[gd_scene format=3 uid="uid://d3llbyv7xg2bw"]
+
+[ext_resource type="Script" uid="uid://1vb6e4w6c4e2" path="res://scripts/hud_edit.gd" id="1_edit"]
+
+[node name="HudEditLayer" type="CanvasLayer" unique_id=1702553330]
+layer = 99
+script = ExtResource("1_edit")
+
+[node name="DimRect" type="ColorRect" parent="." unique_id=1357292002]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="HandlesRoot" type="Control" parent="." unique_id=774027117]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TitleBar" type="PanelContainer" parent="." unique_id=706402692]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 88.0
+offset_top = 51.0
+offset_right = -142.0
+offset_bottom = 75.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="TitleBar" unique_id=1266014250]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="TitleBar/HBox" unique_id=1485213718]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 11
+text = "🎮  EDITOR DE HUD  —  Arrastra los elementos o ajusta en el panel lateral"
+
+[node name="BtnSave" type="Button" parent="TitleBar/HBox" unique_id=972433592]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "✓  GUARDAR"
+
+[node name="BtnReset" type="Button" parent="TitleBar/HBox" unique_id=1159103878]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.1, 1)
+theme_override_font_sizes/font_size = 11
+text = "↺  RESET"
+
+[node name="BtnCancel" type="Button" parent="TitleBar/HBox" unique_id=1241853919]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_font_sizes/font_size = 11
+text = "✕  CANCELAR"
+
+[node name="SidePanel" type="PanelContainer" parent="." unique_id=795696043]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -296.0
+offset_top = 93.0
+offset_right = -73.0
+offset_bottom = -115.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VScroll" type="ScrollContainer" parent="SidePanel" unique_id=1222390257]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="SidePanel/VScroll" unique_id=2066154531]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SelectedLabel" type="Label" parent="SidePanel/VScroll/VBox" unique_id=2001827886]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+text = "Elemento: —"
+
+[node name="Sep0" type="HSeparator" parent="SidePanel/VScroll/VBox" unique_id=116218539]
+layout_mode = 2
+
+[node name="OffsetGroup" type="VBoxContainer" parent="SidePanel/VScroll/VBox" unique_id=1235775876]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="LblOffsets" type="Label" parent="SidePanel/VScroll/VBox/OffsetGroup" unique_id=1198498361]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Posición (offset px)"
+
+[node name="HRow" type="HBoxContainer" parent="SidePanel/VScroll/VBox/OffsetGroup" unique_id=571347284]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LblX" type="Label" parent="SidePanel/VScroll/VBox/OffsetGroup/HRow" unique_id=1667840756]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "X"
+
+[node name="OffsetX" type="SpinBox" parent="SidePanel/VScroll/VBox/OffsetGroup/HRow" unique_id=478573823]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -800.0
+max_value = 800.0
+
+[node name="HRow2" type="HBoxContainer" parent="SidePanel/VScroll/VBox/OffsetGroup" unique_id=884323583]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LblY" type="Label" parent="SidePanel/VScroll/VBox/OffsetGroup/HRow2" unique_id=2048204011]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Y"
+
+[node name="OffsetY" type="SpinBox" parent="SidePanel/VScroll/VBox/OffsetGroup/HRow2" unique_id=244925076]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -800.0
+max_value = 800.0
+
+[node name="ScaleGroup" type="VBoxContainer" parent="SidePanel/VScroll/VBox" unique_id=1894719655]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ScaleHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/ScaleGroup" unique_id=157388890]
+layout_mode = 2
+
+[node name="LblScale" type="Label" parent="SidePanel/VScroll/VBox/ScaleGroup/ScaleHeader" unique_id=411279844]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Escala"
+
+[node name="ScaleValue" type="Label" parent="SidePanel/VScroll/VBox/ScaleGroup/ScaleHeader" unique_id=476258453]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "1.00"
+
+[node name="ScaleSlider" type="HSlider" parent="SidePanel/VScroll/VBox/ScaleGroup" unique_id=325108921]
+layout_mode = 2
+min_value = 0.3
+max_value = 2.5
+step = 0.05
+value = 1.0
+
+[node name="AlphaGroup" type="VBoxContainer" parent="SidePanel/VScroll/VBox" unique_id=1639341430]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="AlphaHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/AlphaGroup" unique_id=1384584178]
+layout_mode = 2
+
+[node name="LblAlpha" type="Label" parent="SidePanel/VScroll/VBox/AlphaGroup/AlphaHeader" unique_id=382432938]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "Opacidad"
+
+[node name="AlphaValue" type="Label" parent="SidePanel/VScroll/VBox/AlphaGroup/AlphaHeader" unique_id=1542362861]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "100%"
+
+[node name="AlphaSlider" type="HSlider" parent="SidePanel/VScroll/VBox/AlphaGroup" unique_id=165685218]
+layout_mode = 2
+max_value = 1.0
+step = 0.02
+value = 1.0
+
+[node name="Sep1" type="HSeparator" parent="SidePanel/VScroll/VBox" unique_id=1329123836]
+layout_mode = 2
+
+[node name="GlobalSection" type="VBoxContainer" parent="SidePanel/VScroll/VBox" unique_id=775202060]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="LblGlobal" type="Label" parent="SidePanel/VScroll/VBox/GlobalSection" unique_id=1701955422]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 11
+text = "⚙ GLOBAL"
+
+[node name="GScaleHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/GlobalSection" unique_id=703216616]
+layout_mode = 2
+
+[node name="LblGScale" type="Label" parent="SidePanel/VScroll/VBox/GlobalSection/GScaleHeader" unique_id=1024736057]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Escala global"
+
+[node name="GScaleValue" type="Label" parent="SidePanel/VScroll/VBox/GlobalSection/GScaleHeader" unique_id=1612838850]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "1.00"
+
+[node name="GScaleSlider" type="HSlider" parent="SidePanel/VScroll/VBox/GlobalSection" unique_id=1541814561]
+layout_mode = 2
+min_value = 0.3
+max_value = 2.5
+step = 0.05
+value = 1.0
+
+[node name="GAlphaHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/GlobalSection" unique_id=1372250327]
+layout_mode = 2
+
+[node name="LblGAlpha" type="Label" parent="SidePanel/VScroll/VBox/GlobalSection/GAlphaHeader" unique_id=2034471009]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Opacidad global"
+
+[node name="GAlphaValue" type="Label" parent="SidePanel/VScroll/VBox/GlobalSection/GAlphaHeader" unique_id=1694996746]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "100%"
+
+[node name="GAlphaSlider" type="HSlider" parent="SidePanel/VScroll/VBox/GlobalSection" unique_id=2146776099]
+layout_mode = 2
+max_value = 1.0
+step = 0.02
+value = 1.0
+
+[node name="Sep2" type="HSeparator" parent="SidePanel/VScroll/VBox" unique_id=313815022]
+layout_mode = 2
+
+[node name="JoySection" type="VBoxContainer" parent="SidePanel/VScroll/VBox" unique_id=410105756]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="LblJoy" type="Label" parent="SidePanel/VScroll/VBox/JoySection" unique_id=2126847887]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "🕹 JOYSTICK"
+
+[node name="DeadZoneHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/JoySection" unique_id=1296432984]
+layout_mode = 2
+
+[node name="LblDeadZone" type="Label" parent="SidePanel/VScroll/VBox/JoySection/DeadZoneHeader" unique_id=855097031]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Zona muerta"
+
+[node name="DeadZoneValue" type="Label" parent="SidePanel/VScroll/VBox/JoySection/DeadZoneHeader" unique_id=193612917]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "8 px"
+
+[node name="DeadZoneSlider" type="HSlider" parent="SidePanel/VScroll/VBox/JoySection" unique_id=644730313]
+layout_mode = 2
+min_value = 2.0
+max_value = 40.0
+value = 8.0
+
+[node name="SensHeader" type="HBoxContainer" parent="SidePanel/VScroll/VBox/JoySection" unique_id=1920102017]
+layout_mode = 2
+
+[node name="LblSens" type="Label" parent="SidePanel/VScroll/VBox/JoySection/SensHeader" unique_id=1247487190]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Sensibilidad"
+
+[node name="SensValue" type="Label" parent="SidePanel/VScroll/VBox/JoySection/SensHeader" unique_id=1752742739]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "1.0×"
+
+[node name="SensSlider" type="HSlider" parent="SidePanel/VScroll/VBox/JoySection" unique_id=179038278]
+layout_mode = 2
+min_value = 0.3
+max_value = 3.0
+step = 0.1
+value = 1.0
+
+[node name="Sep3" type="HSeparator" parent="SidePanel/VScroll/VBox" unique_id=1192382900]
+layout_mode = 2
+
+[node name="LblLegend" type="Label" parent="SidePanel/VScroll/VBox" unique_id=1448130743]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_font_sizes/font_size = 10
+text = "Colores de handles:"
+
+[node name="LegendGrid" type="GridContainer" parent="SidePanel/VScroll/VBox" unique_id=383547984]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 2
+columns = 2
+
+[node name="C1" type="ColorRect" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1126349129]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+color = Color(0.8, 0.2, 0.2, 1)
+
+[node name="L1" type="Label" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=187270644]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Barras/Stats"
+
+[node name="C2" type="ColorRect" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1656988976]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+color = Color(0.9, 0.7, 0.1, 1)
+
+[node name="L2" type="Label" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1346058316]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Barra XP"
+
+[node name="C3" type="ColorRect" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1531520416]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+color = Color(0.2, 0.45, 0.85, 1)
+
+[node name="L3" type="Label" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=250576380]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Joystick"
+
+[node name="C4" type="ColorRect" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1291712984]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+color = Color(0.55, 0.15, 0.75, 1)
+
+[node name="L4" type="Label" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1632951171]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Botones Acción"
+
+[node name="C5" type="ColorRect" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1197206713]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+color = Color(0.2, 0.65, 0.35, 1)
+
+[node name="L5" type="Label" parent="SidePanel/VScroll/VBox/LegendGrid" unique_id=1671223898]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Etiqueta Zona"
