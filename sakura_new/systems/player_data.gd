@@ -78,6 +78,11 @@ var _pending_server_save: bool = false
 # Callback para guardar en servidor (lo asigna main_menu al entrar al juego)
 var server_save_callback: Callable = Callable()
 
+# ── Credenciales cacheadas para save directo (cuando main_menu ya no existe) ──
+var _cached_gmail:    String = ""
+var _cached_password: String = ""
+const AUTH_BACKEND := "https://sakurachronicles.up.railway.app"
+
 # ── Equipment stats (calculados por InventoryManager) ─
 var equipment_defense: int = 0
 var equipment_attack: int = 0
@@ -194,12 +199,15 @@ func _process(delta: float) -> void:
 			save_character_data()
 
 	# FIX MONEDAS: guardado en servidor periódico (cada 60 s si hay cambios)
-	if _pending_server_save and server_save_callback.is_valid():
+	if _pending_server_save:
 		_server_save_timer += delta
 		if _server_save_timer >= SERVER_SAVE_INTERVAL_SEC:
 			_pending_server_save = false
 			_server_save_timer = 0.0
-			server_save_callback.call()
+			if server_save_callback.is_valid():
+				server_save_callback.call()
+			elif not _cached_gmail.is_empty():
+				_do_direct_server_save()
 
 # Llamar esto al cambiar de escena para garantizar que no se pierdan datos
 func flush_pending_save() -> void:
@@ -260,10 +268,96 @@ func _build_save_dict() -> Dictionary:
 
 # Forzar guardado en servidor inmediato (al cambiar de escena o cerrar)
 func flush_pending_server_save() -> void:
+	_pending_server_save = false
+	_server_save_timer   = 0.0
 	if server_save_callback.is_valid():
-		_pending_server_save = false
-		_server_save_timer = 0.0
 		server_save_callback.call()
+	elif not _cached_gmail.is_empty():
+		_do_direct_server_save()
+
+# Save directo al servidor desde PlayerData (cuando main_menu ya fue destruido)
+func _do_direct_server_save() -> void:
+	if _cached_gmail.is_empty() or _cached_password.is_empty():
+		return
+
+	var inv      = get_node_or_null("/root/InventoryManager")
+	var bank_mgr = get_node_or_null("/root/BankManager")
+	if inv      and inv.has_method("save_inventory"):        inv.save_inventory()
+	if bank_mgr and bank_mgr.has_method("save_bank_data"):   bank_mgr.save_bank_data()
+
+	# Inventario serializado (40 slots)
+	var inv_payload: Array = []
+	if inv:
+		for item in inv.items:
+			if item == null:
+				inv_payload.append(null)
+			else:
+				inv_payload.append({
+					"key":        item.get("key", ""),
+					"qty":        item.get("qty", 1),
+					"quality":    item.get("quality", "normal"),
+					"durability": item.get("durability", 100),
+				})
+
+	# Equipamiento serializado
+	var eq_payload: Dictionary = {}
+	if inv and "equipped_items" in inv:
+		for slot_name in inv.equipped_items:
+			var eq = inv.equipped_items[slot_name]
+			if eq == null:
+				eq_payload[slot_name] = null
+			else:
+				eq_payload[slot_name] = {
+					"key":        eq.get("key", ""),
+					"qty":        eq.get("qty", 1),
+					"quality":    eq.get("quality", "normal"),
+					"durability": eq.get("durability", 100),
+				}
+
+	# Banco serializado
+	var bank_payload: Dictionary = {"tier": 0, "items": []}
+	if bank_mgr and inv:
+		bank_payload["tier"] = bank_mgr.bank_tier if "bank_tier" in bank_mgr else 0
+		var bank_items_list: Array = inv.bank_items if "bank_items" in inv else []
+		for item in bank_items_list:
+			if item == null:
+				bank_payload["items"].append(null)
+			else:
+				bank_payload["items"].append({
+					"key":        item.get("key", ""),
+					"qty":        item.get("qty", 1),
+					"quality":    item.get("quality", "normal"),
+					"durability": item.get("durability", 100),
+				})
+
+	var payload := {
+		"gmail":          _cached_gmail,
+		"password":       _cached_password,
+		"character_slot": max(0, active_slot_index),
+		"character":      _build_save_dict(),
+		"inventory":      inv_payload,
+		"equipped":       eq_payload,
+		"bank":           bank_payload,
+	}
+
+	var http := HTTPRequest.new()
+	get_tree().root.add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[PlayerData] ✅ Save directo al servidor OK (slot %d)" % active_slot_index)
+		else:
+			push_error("[PlayerData] ❌ Save directo falló: code=%d" % code)
+	)
+	var err := http.request(
+		AUTH_BACKEND + "/save-player",
+		["Content-Type: application/json"],
+		HTTPClient.METHOD_POST,
+		JSON.stringify(payload)
+	)
+	if err != OK:
+		push_error("[PlayerData] ❌ HTTPRequest.request() falló: %d" % err)
+		http.queue_free()
 
 # ──────────────────────────────────────────────
 # GUARDAR / CARGAR

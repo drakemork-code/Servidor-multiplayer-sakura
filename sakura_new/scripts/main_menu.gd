@@ -48,6 +48,8 @@ extends Control
 # ── Pantallas ──────────────────────────────────────────────────────
 @onready var screen_login   : Control = $ScreenLogin
 @onready var screen_select  : Control = $ScreenSelect
+var _loading_overlay: Control = null
+var _loading_label: Label = null
 @onready var screen_create  : Control = $ScreenCreate
 @onready var login_video_bg : VideoStreamPlayer = $LoginVideoBg
 
@@ -1590,6 +1592,7 @@ func _apply_server_player_data(json: Dictionary) -> void:
 
 # ════════ [SELECT] Pantalla de selección ═══════════════════════════
 func _setup_select_screen() -> void:
+	_build_loading_overlay()
 	var root := screen_select
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.anchor_right = 1.0; root.anchor_bottom = 1.0
@@ -2011,6 +2014,62 @@ func _show_login() -> void:
 		login_video_bg.visible = true
 		if not login_video_bg.is_playing(): login_video_bg.play()
 
+# ═══════════════════════════════════════════════════════════════════
+# OVERLAY DE CARGA — se muestra mientras esperamos al servidor
+# (ej: cargando personajes al entrar a la pantalla de selección)
+# ═══════════════════════════════════════════════════════════════════
+func _build_loading_overlay() -> void:
+	if is_instance_valid(_loading_overlay): return
+	var ov := Control.new()
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP  # bloquea clicks mientras carga
+	ov.visible = false
+	ov.z_index = 500
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.0, 0.0, 0.0, 0.55)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(bg)
+
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_CENTER)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 10)
+	ov.add_child(box)
+
+	var spin := Label.new()
+	spin.name = "SpinIcon"
+	spin.text = "⏳"
+	spin.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	spin.add_theme_font_size_override("font_size", 34)
+	box.add_child(spin)
+
+	var lbl := Label.new()
+	lbl.name = "LoadingLabel"
+	lbl.text = "Cargando..."
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 15)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.855, 0.435))
+	box.add_child(lbl)
+
+	screen_select.add_child(ov)
+	_loading_overlay = ov
+	_loading_label   = lbl
+
+	# Animación de pulso para que se note que algo está cargando
+	var tw := create_tween().set_loops()
+	tw.tween_property(spin, "modulate:a", 0.35, 0.5)
+	tw.tween_property(spin, "modulate:a", 1.0,  0.5)
+
+func _show_loading_overlay(text: String = "Cargando...") -> void:
+	if not is_instance_valid(_loading_overlay): _build_loading_overlay()
+	if is_instance_valid(_loading_label): _loading_label.text = text
+	_loading_overlay.visible = true
+
+func _hide_loading_overlay() -> void:
+	if is_instance_valid(_loading_overlay):
+		_loading_overlay.visible = false
+
 func _show_select() -> void:
 	_load_slots()
 	screen_login.visible = false; screen_select.visible = true; screen_create.visible = false
@@ -2024,7 +2083,9 @@ func _show_select() -> void:
 	if root_node:
 		var dg := root_node.get_node_or_null("TitleDecoGroup"); if dg: dg.visible = true
 	# Cargar datos del servidor y reconstruir _slots con los personajes del servidor
+	_show_loading_overlay("Cargando personajes...")
 	_server_load_player(func(data):
+		_hide_loading_overlay()
 		if data == null: return
 		# FIX APK: reconstruir _slots[] desde los datos del servidor
 		var server_slots: Array = data.get("slots", [])
@@ -2501,6 +2562,11 @@ func _on_enter_btn_pressed() -> void:
 	_server_save_player()
 	# Registrar callback para guardar en servidor cuando la app se cierre/pause
 	PlayerData.server_save_callback = Callable(self, "save_active_slot_gold")
+	# FIX: cachear credenciales y slot en PlayerData para que pueda hacer
+	# saves directos cuando main_menu ya no exista (cambio de escena)
+	PlayerData._cached_gmail    = _logged_gmail
+	PlayerData._cached_password = _logged_password
+	PlayerData.active_slot_index = _selected_slot
 	if PlayerData.character_name == "DrakeDev" or PlayerData.character_name == "👑 DrakeDev":
 		PlayerData.activate_drake_mode()
 	# Conectar al servidor de multiplayer en tiempo real (WebSocket)
@@ -2527,6 +2593,10 @@ func _on_delete_btn_pressed() -> void:
 
 func _on_logout_btn_pressed() -> void:
 	_logged_user = ""; _logged_gmail = ""; _logged_password = ""; _show_login()
+	# FIX: limpiar caché de credenciales en PlayerData al cerrar sesión
+	PlayerData._cached_gmail    = ""
+	PlayerData._cached_password = ""
+	PlayerData.server_save_callback = Callable()
 
 # ═══════════════════════════════════════════════════════════════════
 # CREAR PERSONAJE

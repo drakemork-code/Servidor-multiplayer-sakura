@@ -74,6 +74,25 @@ var _trying_reconnect : bool = false
 var _last_host : String = DEFAULT_HOST
 var _last_port : int    = DEFAULT_PORT
 
+# FIX BUG "DOS MUNDOS": el resync de enemigos/jugadores al cambiar de escena
+# se pedía UNA SOLA VEZ desde loading_screen.gd, esperando solo 3 frames a
+# que _spawn_all_camps() (que usa call_deferred) terminara de crear los
+# nodos enemy locales. En tablets/dispositivos más lentos, o con camps
+# grandes, ese spawn puede tardar más de 3 frames — y cuando el
+# _rpc_sync_enemy_list llega antes de que existan los nodos locales, el
+# matching por proximidad falla para todos, dejándolos con network_id=0
+# PARA SIEMPRE (sin ningún reintento). Eso hace que ese cliente entre en
+# "modo local" para esos mobs: los mata sin que el servidor se entere,
+# mientras otros jugadores (sí emparejados) siguen viéndolos vivos.
+#
+# Solución: reintentar el resync automáticamente cada _RESYNC_RETRY_SEC
+# mientras sigan existiendo enemigos locales con network_id == 0, hasta
+# un máximo de intentos, en vez de un único disparo a ciegas.
+var _resync_retry_timer   : float = 0.0
+var _resync_retry_count   : int   = 0
+const RESYNC_RETRY_SEC    : float = 1.5
+const RESYNC_MAX_RETRIES  : int   = 8
+
 const REMOTE_PLAYER_SCENE = preload("res://scenes/player_remote.tscn")
 
 # ──────────────────────────────────────────────────────────────
@@ -92,11 +111,50 @@ func _process(delta: float) -> void:
 			if _sync_timer >= 1.0 / SYNC_HZ:
 				_sync_timer = 0.0
 				_send_my_state()
+			_process_resync_retry(delta)
 	if _trying_reconnect:
 		_reconnect_timer += delta
 		if _reconnect_timer >= RECONNECT_DELAY:
 			_reconnect_timer = 0.0
 			join_server(_last_host, _last_port)
+
+# FIX BUG "DOS MUNDOS": reintenta el resync de enemigos (y de jugadores)
+# mientras existan enemigos locales sin network_id asignado por el servidor.
+# El contador se resetea cada vez que cambiamos de escena, vía
+# reset_resync_retries() (llamado desde loading_screen.gd), así cada zona
+# nueva tiene su propia ventana de reintentos disponible.
+func _process_resync_retry(delta: float) -> void:
+	if _resync_retry_count >= RESYNC_MAX_RETRIES:
+		return
+	if not _has_unmatched_local_enemies():
+		_resync_retry_count = RESYNC_MAX_RETRIES  # ya no hace falta seguir reintentando en esta zona
+		return
+	_resync_retry_timer += delta
+	if _resync_retry_timer >= RESYNC_RETRY_SEC:
+		_resync_retry_timer = 0.0
+		_resync_retry_count += 1
+		print("[Client] Reintento de resync #%d (quedan enemigos locales sin network_id)" % _resync_retry_count)
+		request_enemy_resync.rpc_id(1)
+		request_player_resync.rpc_id(1)
+
+# True si hay al menos un nodo del grupo "enemy" en la escena actual con
+# network_id == 0 (no emparejado todavía con el servidor).
+func _has_unmatched_local_enemies() -> bool:
+	var tree = get_tree()
+	if not tree:
+		return false
+	for e in tree.get_nodes_in_group("enemy"):
+		if is_instance_valid(e):
+			var nid = e.get("network_id")
+			if nid == 0:
+				return true
+	return false
+
+# Llamar al terminar de cargar una escena nueva (loading_screen.gd) para
+# reactivar la ventana de reintentos de resync en la zona recién cargada.
+func reset_resync_retries() -> void:
+	_resync_retry_timer = 0.0
+	_resync_retry_count = 0
 
 # ──────────────────────────────────────────────────────────────
 # SERVIDOR / CLIENTE
@@ -297,8 +355,11 @@ func _recv_appearance_update(peer_id: int, data: Dictionary) -> void:
 			online_players[peer_id][key] = data[key]
 	if peer_id in _remote_nodes:
 		var node = _remote_nodes[peer_id]
-		if is_instance_valid(node) and node.has_method("setup"):
-			node.setup(online_players[peer_id])
+		if is_instance_valid(node):
+			if node.has_method("refresh_appearance"):
+				node.refresh_appearance(online_players[peer_id])
+			elif node.has_method("setup"):
+				node.setup(online_players[peer_id])
 
 func _send_enemy_list_to_client(peer_id: int) -> void:
 	var em = get_node_or_null("/root/EnemyManager")
@@ -794,7 +855,25 @@ func _spawn_remote_node(peer_id: int, data: Dictionary) -> void:
 	var current = GameManager.current_scene
 	if data.get("scene","") != current:
 		return
+	# FIX BUG "JUGADOR DEFAULT": _update_player_state/_recv_player_state viajan
+	# por un canal "unreliable_ordered" separado de _send_player_joined
+	# ("reliable"), así que no hay garantía de qué llega primero. Si el
+	# paquete de posición llega antes que el de "joined", _apply_remote_state
+	# crea un online_players[peer_id] vacío (solo scene/position/hp/anim) y
+	# spawnea el RemotePlayer con esos datos — sin nombre, sin pelo, sin
+	# colores de piel/ropa. Cuando el paquete real con la apariencia
+	# completa llega después, este guard de "ya existe, no hacer nada"
+	# descartaba esos datos para siempre, dejando al jugador con el
+	# aspecto default por el resto de la sesión. Ahora, si el nodo ya
+	# existe, refrescamos su apariencia con los datos nuevos en vez de
+	# ignorarlos.
 	if peer_id in _remote_nodes:
+		var existing = _remote_nodes[peer_id]
+		if is_instance_valid(existing):
+			if existing.has_method("refresh_appearance"):
+				existing.refresh_appearance(data)
+			elif existing.has_method("setup"):
+				existing.setup(data)
 		return
 	if not ResourceLoader.exists("res://scenes/player_remote.tscn"):
 		return

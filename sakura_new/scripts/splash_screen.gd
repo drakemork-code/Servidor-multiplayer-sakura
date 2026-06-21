@@ -6,7 +6,7 @@ extends Node2D
 # ════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN
 # ════════════════════════════════════════════════════════════════
-const SPLASH_DURATION   : float  = 4.5
+const SPLASH_DURATION   : float  = 3.0
 const TITLE_FADE_IN     : float  = 1.2
 const FADE_OUT_DURATION : float  = 0.8
 const NEXT_SCENE        : String = "res://scenes/main_menu.tscn"

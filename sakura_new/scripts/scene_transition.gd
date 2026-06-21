@@ -89,28 +89,24 @@ func _trigger_transition(player: Node2D) -> void:
 
 func _calculate_opposite_spawn() -> Vector2:
 	# El jugador aparece cerca del borde de entrada de la escena destino.
-	# Si el destino es town, aparece cerca de la puerta correspondiente.
-	# Si el destino es un mundo, aparece en el borde opuesto al que salió.
 	var is_going_to_town := target_scene == "res://scenes/town.tscn"
 
 	if is_going_to_town:
-		# Spawn cerca de la puerta de town por la que entró
-		# town tiene SCENE_HEIGHT=3200, SCENE_WIDTH=4800
-		# las puertas están a ±half_h o ±half_w con un pequeño margen
+		# town: SCENE_WIDTH=1920, SCENE_HEIGHT=1080 → half = ±960, ±540
 		match transition_direction:
-			"north": return Vector2(0,  -1500)  # puerta norte de town (borde norte)
-			"south": return Vector2(0,   1500)  # puerta sur de town (borde sur)
-			"east":  return Vector2( 2300,  0)  # puerta este de town
-			"west":  return Vector2(-2300,  0)  # puerta oeste de town
+			"north": return Vector2(0,  -460)   # justo dentro del borde norte de town
+			"south": return Vector2(0,   460)   # justo dentro del borde sur de town
+			"east":  return Vector2( 880,   0)  # justo dentro del borde este de town
+			"west":  return Vector2(-880,   0)  # justo dentro del borde oeste de town
 			_:       return Vector2(0, 0)
 	else:
-		# Mapas expandidos 6000×4000
-		# El jugador aparece cerca del borde de entrada del mundo
+		# Worlds: SCENE_WIDTH=18000, SCENE_HEIGHT=12000 → half = ±9000, ±6000
+		# El jugador aparece a 100px del borde de entrada
 		match transition_direction:
-			"north": return Vector2(0,    1900)   # borde sur de world_north
-			"south": return Vector2(0,   -1900)   # borde norte de world_south
-			"east":  return Vector2(-2900,   0)   # borde oeste de world_east
-			"west":  return Vector2( 2900,   0)   # borde este de world_west
+			"north": return Vector2(0,    5800)   # borde sur de world_north (y=+6000)
+			"south": return Vector2(0,   -5800)   # borde norte de world_south (y=-6000)
+			"east":  return Vector2(-8800,   0)   # borde oeste de world_east (x=-9000)
+			"west":  return Vector2( 8800,   0)   # borde este de world_west (x=+9000)
 			_:       return Vector2(0, 0)
 
 func _do_fade_transition(_player: Node2D, spawn: Vector2) -> void:

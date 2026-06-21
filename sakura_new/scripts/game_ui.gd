@@ -3883,49 +3883,54 @@ const MINIMAP_ZONE_COLORS: Dictionary = {
 	"world_west":  Color(0.12, 0.12, 0.22),   # azul oscuro bosque
 }
 
-# ── Rectángulos de mundo REALES (6000×4000, centrados en origen) ──
-# Cada world_*.gd usa: position = Vector2(-SCENE_WIDTH/2, -SCENE_HEIGHT/2)
+# ── Rectángulos de mundo REALES (18000×12000, centrados en origen) ──
+# Cada world_*.gd usa SCENE_WIDTH=18000, SCENE_HEIGHT=12000
 const MINIMAP_WORLD_RECTS: Dictionary = {
-	"town":        Rect2( -640,  -540,  1280, 1080),
-	"dungeon":     Rect2( -640,  -540,  1280, 1080),
-	"world_north": Rect2(-3000, -2000,  6000, 4000),
-	"world_south": Rect2(-3000, -2000,  6000, 4000),
-	"world_east":  Rect2(-3000, -2000,  6000, 4000),
-	"world_west":  Rect2(-3000, -2000,  6000, 4000),
+	"town":        Rect2( -960,  -540,  1920, 1080),
+	"dungeon":     Rect2( -640,  -480,  1280,  960),
+	"world_north": Rect2(-9000, -6000, 18000, 12000),
+	"world_south": Rect2(-9000, -6000, 18000, 12000),
+	"world_east":  Rect2(-9000, -6000, 18000, 12000),
+	"world_west":  Rect2(-9000, -6000, 18000, 12000),
 }
 
 # ── Bandas de peligro por zona (para worlds) ─────────────────
-# Cada entrada: [y_from, y_to, color] en coordenadas globales
+# Coordenadas reales del mundo (SCENE_WIDTH=18000, SCENE_HEIGHT=12000)
+# world_north: entrada sur (y=+6000), boss norte (y=-6000)
+#   RING0: y >= 4800 (seguro), RING1: 0..4800, RING2: -2400..0, RING3: -6000..-2400
+# world_south: entrada norte (y=-6000), boss sur (y=+6000)
+#   RING0: y <= -4800, RING1: -4800..0, RING2: 0..2400, RING3: 2400..6000
+# world_east:  entrada oeste (x=-9000), boss este (x=+9000)
+#   RING0: x <= -4800, RING1: -4800..0, RING2: 0..4800, RING3: 4800..9000
+# world_west:  entrada este (x=+9000), boss oeste (x=-9000)
+#   RING0: x >= 4800, RING1: 0..4800, RING2: -4800..0, RING3: -9000..-4800
 const MINIMAP_DANGER_BANDS: Dictionary = {
 	"world_north": [
-		# y positivo = sur (entrada), y negativo = norte (boss)
-		[-2000,  -800, Color(0.60, 0.10, 0.10, 0.55)],   # Ring3 — mortal
-		[ -800,     0, Color(0.80, 0.35, 0.10, 0.45)],   # Ring2 — peligroso
-		[    0,  1600, Color(0.80, 0.75, 0.10, 0.30)],   # Ring1 — medio
-		[ 1600,  2000, Color(0.20, 0.75, 0.20, 0.20)],   # Ring0 — seguro
+		[-6000, -2400, Color(0.60, 0.10, 0.10, 0.55)],  # Ring3 — mortal
+		[-2400,     0, Color(0.80, 0.35, 0.10, 0.45)],  # Ring2 — peligroso
+		[    0,  4800, Color(0.80, 0.75, 0.10, 0.30)],  # Ring1 — medio
+		[ 4800,  6000, Color(0.20, 0.75, 0.20, 0.20)],  # Ring0 — seguro
 	],
 	"world_south": [
-		[-2000,  -800, Color(0.60, 0.10, 0.10, 0.55)],
-		[ -800,     0, Color(0.80, 0.35, 0.10, 0.45)],
-		[    0,  1600, Color(0.80, 0.75, 0.10, 0.30)],
-		[ 1600,  2000, Color(0.20, 0.75, 0.20, 0.20)],
+		[ 2400,  6000, Color(0.60, 0.10, 0.10, 0.55)],  # Ring3 — mortal
+		[    0,  2400, Color(0.80, 0.35, 0.10, 0.45)],  # Ring2 — peligroso
+		[-4800,     0, Color(0.80, 0.75, 0.10, 0.30)],  # Ring1 — medio
+		[-6000, -4800, Color(0.20, 0.75, 0.20, 0.20)],  # Ring0 — seguro
 	],
 	"world_east": [
-		[-2000,  -800, Color(0.60, 0.10, 0.10, 0.55)],
-		[ -800,     0, Color(0.80, 0.35, 0.10, 0.45)],
-		[    0,  1600, Color(0.80, 0.75, 0.10, 0.30)],
-		[ 1600,  2000, Color(0.20, 0.75, 0.20, 0.20)],
+		# Bandas verticales — usamos Y para cubrir toda la altura, X marca la zona
+		# Simulamos con franjas horizontales que cubren todo el alto
+		# (el sistema solo soporta bandas Y; para east/west las bandas cubren todo el alto)
+		[-6000,  6000, Color(0.20, 0.75, 0.20, 0.10)],  # base verde tenue (se pisa con colores reales abajo)
 	],
 	"world_west": [
-		[-2000,  -800, Color(0.60, 0.10, 0.10, 0.55)],
-		[ -800,     0, Color(0.80, 0.35, 0.10, 0.45)],
-		[    0,  1600, Color(0.80, 0.75, 0.10, 0.30)],
-		[ 1600,  2000, Color(0.20, 0.75, 0.20, 0.20)],
+		[-6000,  6000, Color(0.12, 0.12, 0.22, 0.10)],  # base oscura tenue
 	],
 }
 
 # ── Puntos de interés estáticos por zona ─────────────────────
 # type: "portal" → azul | "camp" → amarillo | "boss" → rojo parpadeante | "npc" → verde
+# Coordenadas reales: mapas 18000×12000, town 1920×1080, dungeon 1280×960
 const MINIMAP_POIS: Dictionary = {
 	"town": [
 		{"pos": Vector2(  0, -200), "color": Color(0.9, 0.7, 0.1), "size": 5, "type": "npc",    "label": "M"},  # Mercado
@@ -3935,26 +3940,28 @@ const MINIMAP_POIS: Dictionary = {
 		{"pos": Vector2(  0, -450), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "↘"},  # Portal Sur
 	],
 	"world_north": [
-		{"pos": Vector2(   0,  1900), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town sur
-		{"pos": Vector2(-2900,    0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "←"},  # Portal oeste
-		{"pos": Vector2( 2900,    0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "→"},  # Portal este
-		{"pos": Vector2(   0, -1900), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Skeleton King
+		# Norte: entrada por sur (y=+5900), boss al norte (y=-6000)
+		{"pos": Vector2(    0,  5800), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town
+		{"pos": Vector2(    0, -5800), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Skeleton King
 	],
 	"world_south": [
-		{"pos": Vector2(   0, -1900), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town norte
-		{"pos": Vector2(   0,  1900), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Salida sur — Boss Goblin Chieftain
+		# Sur: entrada por norte (y=-5900), boss al sur (y=+6000)
+		{"pos": Vector2(    0, -5800), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town
+		{"pos": Vector2(    0,  5800), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Goblin Chieftain
 	],
 	"world_east": [
-		{"pos": Vector2(-2900,    0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},
-		{"pos": Vector2( 2900,    0), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Orc Warlord
+		# Este: entrada por oeste (x=-8800), boss al este (x=+9000)
+		{"pos": Vector2(-8800,     0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town
+		{"pos": Vector2( 8800,     0), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Orc Warlord
 	],
 	"world_west": [
-		{"pos": Vector2( 2900,    0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},
-		{"pos": Vector2(-2900,    0), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Shadow Lord
+		# Oeste: entrada por este (x=+8800), boss al oeste (x=-9000)
+		{"pos": Vector2( 8800,     0), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "T"},  # Portal a town
+		{"pos": Vector2(-8800,     0), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Shadow Lord
 	],
 	"dungeon": [
-		{"pos": Vector2(   0,  490), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "↑"},
-		{"pos": Vector2(   0, -490), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Azathiel
+		{"pos": Vector2(   0,  460), "color": Color(0.3, 0.6, 1.0), "size": 5, "type": "portal", "label": "↑"},
+		{"pos": Vector2(   0, -460), "color": Color(0.9, 0.1, 0.1), "size": 7, "type": "boss",   "label": "☠"},  # Boss Azathiel
 	],
 }
 

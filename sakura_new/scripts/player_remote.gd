@@ -48,23 +48,42 @@ func _ready() -> void:
 	move_child(shadow, 0)
 
 func setup(data: Dictionary) -> void:
-	_peer_name  = data.get("name", "???")
-	print("[PlayerRemote] setup() — nombre='%s' pos=%s" % [_peer_name, data.get("position", {})])
-	_hair_style = data.get("hair_style", "spikeyhair")
-	if not _hair_style in HAIR_STYLES:
-		_hair_style = "spikeyhair"
 	var pos_d = data.get("position", {"x": 0.0, "y": 0.0})
 	_target_pos = Vector2(pos_d.x, pos_d.y)
 	global_position = _target_pos
+	_apply_appearance_data(data)
+
+# FIX BUG "JUGADOR DEFAULT": cuando el dato completo de apariencia (nombre,
+# pelo, colores) llega DESPUÉS de que el nodo remoto ya fue creado con datos
+# parciales (carrera de timing entre el RPC reliable de "joined" y el
+# unreliable_ordered de posición — ver _spawn_remote_node en
+# network_manager.gd), llamamos a esto en vez de setup() para refrescar
+# solo la apariencia sin teletransportar el nodo de golpe a una posición
+# vieja/desactualizada.
+func refresh_appearance(data: Dictionary) -> void:
+	_apply_appearance_data(data)
+
+func _apply_appearance_data(data: Dictionary) -> void:
+	_peer_name  = data.get("name", "???")
+	print("[PlayerRemote] apariencia aplicada — nombre='%s'" % _peer_name)
+	_hair_style = data.get("hair_style", "spikeyhair")
+	if not _hair_style in HAIR_STYLES:
+		_hair_style = "spikeyhair"
+	# FIX NOMBRE: siempre mostrar el nombre real; si llega vacío mostrar "Jugador"
+	var display_name := _peer_name if _peer_name != "" and _peer_name != "???" else "Jugador"
 	if name_label:
-		name_label.text = _peer_name
+		name_label.text = display_name
+		# Asegurar que el label sea visible (tamaño y color)
+		name_label.add_theme_color_override("font_color", Color(1.0, 0.96, 0.6, 1.0))
+		name_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+		name_label.visible = true
 	if hp_bar:
 		hp_bar.max_value = data.get("max_hp", 100)
 		hp_bar.value     = data.get("hp", 100)
 	# FIX APARIENCIA: aplicar el mismo shader character_swap que usa el jugador
 	# local, para que piel/pelo/ojos/outfit coincidan con lo que eligió el dueño.
 	_apply_appearance_shader(data)
-	_load_anim("idle")
+	_load_anim(_anim_current)
 
 func _apply_appearance_shader(data: Dictionary) -> void:
 	if not sprite:
@@ -121,34 +140,46 @@ func _load_anim(anim_name: String) -> void:
 	var counts = {"idle": 9, "walk": 8, "run": 8, "attack": 10}
 	var count  = counts.get(anim_name, 9)
 
-	# Intentar con hair_style primero
+	# 1) Intentar con hair_style primero
 	var path = PLAYER_BASE + "player_%s_%s_strip%d.png" % [_hair_style, anim_name, count]
 	var tex : Texture2D = null
 
 	if ResourceLoader.exists(path):
 		tex = load(path) as Texture2D
 
-	# Fallback: sin hair_style
+	# 2) Fallback: sin hair_style
 	if not tex:
 		path = PLAYER_BASE + "player_%s_strip%d.png" % [anim_name, count]
 		if ResourceLoader.exists(path):
 			tex = load(path) as Texture2D
 
-	# Fallback final: idle genérico
+	# 3) Fallback: idle genérico
 	if not tex:
 		path = PLAYER_BASE + "player_idle_strip9.png"
 		if ResourceLoader.exists(path):
 			tex = load(path) as Texture2D
 			count = 9
 
-	if tex:
-		sprite.texture = tex
-		sprite.hframes = count
-		sprite.vframes = 1
-		sprite.frame   = 0
-		_anim_frame    = 0
-	else:
-		push_warning("[PlayerRemote] No se encontró sprite para: %s %s" % [_hair_style, anim_name])
+	# 4) Fallback final: sprite de color sólido para que el jugador remoto
+	#    SIEMPRE sea visible aunque falten los assets en el cliente.
+	if not tex:
+		push_warning("[PlayerRemote] No se encontró sprite para: %s %s — usando placeholder" % [_hair_style, anim_name])
+		var img := Image.create(32, 48, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0.2, 0.4, 0.9, 1.0))
+		for px in range(32):
+			for py in range(20):
+				var dx := float(px - 16) / 8.0
+				var dy := float(py - 10) / 8.0
+				if dx * dx + dy * dy <= 1.0:
+					img.set_pixel(px, py, Color(0.96, 0.78, 0.64, 1.0))
+		tex = ImageTexture.create_from_image(img)
+		count = 1
+
+	sprite.texture = tex
+	sprite.hframes = count
+	sprite.vframes = 1
+	sprite.frame   = 0
+	_anim_frame    = 0
 
 func _get_frame_count(anim_name: String) -> int:
 	return {"idle": 9, "walk": 8, "run": 8, "attack": 10}.get(anim_name, 9)

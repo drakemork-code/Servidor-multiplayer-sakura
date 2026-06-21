@@ -18,12 +18,12 @@ signal minimap_ready()
 signal zone_data_updated(zone: String, bounds: Rect2)
 
 # ── Definición de zonas ──────────────────────────────────────
-# Bounds en coordenadas de juego para cada zona
+# Bounds reales: worlds 18000×12000, town 1920×1080, dungeon 1280×960
 const ZONE_BOUNDS: Dictionary = {
-	"world_north":  Rect2(-3000, -2000,  6000, 4000),
-	"world_south":  Rect2(-3000, -2000,  6000, 4000),
-	"world_east":   Rect2(-3000, -2000,  6000, 4000),
-	"world_west":   Rect2(-3000, -2000,  6000, 4000),
+	"world_north":  Rect2(-9000, -6000, 18000, 12000),
+	"world_south":  Rect2(-9000, -6000, 18000, 12000),
+	"world_east":   Rect2(-9000, -6000, 18000, 12000),
+	"world_west":   Rect2(-9000, -6000, 18000, 12000),
 	"lobby":        Rect2( -960,  -540,  1920, 1080),
 	"dungeon":      Rect2( -640,  -480,  1280,  960),
 }
@@ -32,20 +32,20 @@ const ZONE_BOUNDS: Dictionary = {
 # Lista de {label, pos, color}
 const ZONE_POIS: Dictionary = {
 	"world_north": [
-		{"label":"Portal Sur", "pos":Vector2(0, 1900),   "color":Color(0.3,1.0,0.3)},
-		{"label":"Boss Norte", "pos":Vector2(0, -1900),  "color":Color(1.0,0.2,0.2)},
+		{"label":"Portal Sur", "pos":Vector2(0,  5800), "color":Color(0.3,1.0,0.3)},
+		{"label":"Boss Norte", "pos":Vector2(0, -5800), "color":Color(1.0,0.2,0.2)},
 	],
 	"world_south": [
-		{"label":"Portal Norte","pos":Vector2(0, 1900),  "color":Color(0.3,1.0,0.3)},
-		{"label":"Boss Sur",    "pos":Vector2(0,-1900),  "color":Color(1.0,0.2,0.2)},
+		{"label":"Portal Norte","pos":Vector2(0, -5800), "color":Color(0.3,1.0,0.3)},
+		{"label":"Boss Sur",    "pos":Vector2(0,  5800), "color":Color(1.0,0.2,0.2)},
 	],
 	"world_east": [
-		{"label":"Portal",      "pos":Vector2(-1900, 0), "color":Color(0.3,1.0,0.3)},
-		{"label":"Boss Este",   "pos":Vector2( 1900, 0), "color":Color(1.0,0.2,0.2)},
+		{"label":"Portal",      "pos":Vector2(-8800, 0), "color":Color(0.3,1.0,0.3)},
+		{"label":"Boss Este",   "pos":Vector2( 8800, 0), "color":Color(1.0,0.2,0.2)},
 	],
 	"world_west": [
-		{"label":"Portal",      "pos":Vector2( 1900, 0), "color":Color(0.3,1.0,0.3)},
-		{"label":"Boss Oeste",  "pos":Vector2(-1900, 0), "color":Color(1.0,0.2,0.2)},
+		{"label":"Portal",      "pos":Vector2( 8800, 0), "color":Color(0.3,1.0,0.3)},
+		{"label":"Boss Oeste",  "pos":Vector2(-8800, 0), "color":Color(1.0,0.2,0.2)},
 	],
 	"lobby": [
 		{"label":"Forja",       "pos":Vector2( 592, 275), "color":Color(1.0,0.6,0.1)},

@@ -246,7 +246,12 @@ func _physics_process(delta: float) -> void:
 	_handle_input()
 	move_and_slide()
 
-	z_index = int((global_position.y + 2000.0) / 8.0)
+	# BUG FIX: +2000 estaba calibrado para los mapas viejos (más chicos).
+	# Con los mapas grandes nuevos (SCENE_HEIGHT=12000, Y de -6000 a 6000),
+	# eso daba z_index negativo en la mitad superior del mapa, enterrando
+	# al jugador debajo del fondo/terreno (z_index=-20). +7000 garantiza
+	# z_index positivo en todo el rango de los mapas grandes.
+	z_index = int((global_position.y + 7000.0) / 8.0)
 
 	# PASO 15 — animar sombra según velocidad (da sensación de peso)
 	var _shadow_node = get_meta("_body_shadow", null)
@@ -429,6 +434,10 @@ func _update_animation(input_vec: Vector2) -> void:
 				animation_player.play("idle")
 
 func _handle_input() -> void:
+	# FIX CHAT-INPUT: si el LineEdit del chat tiene el foco, no procesar
+	# ningún keybind de juego para que las teclas q/w/e/r/etc. solo escriban.
+	if _is_chat_focused():
+		return
 	if Input.is_action_just_pressed("dodge"):
 		_perform_dodge()
 	if Input.is_action_just_pressed("attack") and not is_attacking and attack_cooldown_timer <= 0:
@@ -445,6 +454,23 @@ func _handle_input() -> void:
 		WeaponSkillSystem.use_skill(1)
 	if Input.is_action_just_pressed("skill_r"):
 		WeaponSkillSystem.use_skill(2)
+
+## Devuelve true si el campo de texto del chat tiene el foco del teclado.
+## Cuando es así, _handle_input() devuelve inmediatamente para que las teclas
+## de juego (QWER, dodge, inventario…) no se disparen al chatear.
+func _is_chat_focused() -> bool:
+	var ui := _get_game_ui()
+	if not ui:
+		return false
+	# Buscar el LineEdit dentro del ChatPanel (ruta usada en game_ui.gd)
+	var chat_input: LineEdit = ui.get_node_or_null(
+		"MobileControls/ChatPanel/VBox/InputRow/ChatInput")
+	if chat_input and chat_input.has_focus():
+		return true
+	# Fallback: cualquier LineEdit visible en el árbol que tenga foco
+	# (cubre diálogos de nombre u otros inputs futuros)
+	var focused := get_viewport().gui_get_focus_owner()
+	return focused is LineEdit
 
 # ──────────────────────────────────────────────
 # ACCIONES

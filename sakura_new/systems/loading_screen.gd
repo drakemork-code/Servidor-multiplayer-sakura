@@ -301,6 +301,12 @@ func _finish_and_change() -> void:
 	var _nm_ls = get_node_or_null("/root/NetworkManager")
 	if _nm_ls and _nm_ls.is_client and multiplayer.has_multiplayer_peer() \
 			and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		# FIX BUG "DOS MUNDOS": reactivar la ventana de reintentos automáticos
+		# de resync para esta zona nueva (ver _process_resync_retry en
+		# network_manager.gd). El disparo inicial de abajo sigue existiendo
+		# como fast-path, pero ya no es el único intento posible.
+		if _nm_ls.has_method("reset_resync_retries"):
+			_nm_ls.reset_resync_retries()
 		_nm_ls.request_enemy_resync.rpc_id(1)
 		print("[LoadingScreen] Enemy resync solicitado al servidor para zona: ", GameManager.current_scene)
 		# FIX BUG CRÍTICO: mismo resync pero para jugadores remotos (nombres,

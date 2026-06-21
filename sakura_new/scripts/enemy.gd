@@ -37,6 +37,10 @@ class_name Enemy
 # ── ID de red único (asignado por EnemyManager al spawnear) ──
 # Permite que el servidor identifique a qué enemigo se está golpeando.
 var network_id: int = 0
+# Cooldown para no espamear request_enemy_resync si el jugador golpea
+# repetidamente un mob que todavía no tiene network_id (ver take_damage).
+var _last_forced_resync_time: float = -999.0
+const FORCED_RESYNC_COOLDOWN: float = 1.0
 # FIX MULTIJUGADOR: a qué escena/zona pertenece este enemigo (resource path,
 # ej. "res://scenes/world_south.tscn"). Necesario porque el servidor dedicado
 # mantiene los 4 mapas cargados a la vez — sin esto, el filtrado de la lista
@@ -738,23 +742,38 @@ func _apply_damage_to_player(target: Node, amount: int) -> void:
 			# Fallback: aplicar local en el servidor (p.ej. host jugando)
 			if target.has_method("take_damage"):
 				target.take_damage(amount)
-	elif nm and nm.is_client:
-		# Cliente: NO aplicar — el servidor lo hará y notificará vía RPC
-		pass
 	else:
-		# Offline: aplicar directo
+		# FIX v27: en modo cliente (o sin conexión), los mobs son instancias
+		# locales del cliente — aplicar el daño directamente aquí. El servidor
+		# headless no tiene nodos Player en su árbol, así que no puede detectar
+		# ni reenviar este daño. El cliente es fuente de verdad para el daño
+		# que recibe de sus mobs locales visibles.
 		if target.has_method("take_damage"):
 			target.take_damage(amount)
 
 func _find_peer_id_for_player(target: Node, nm: Node) -> int:
-	# Buscar el peer_id comparando posición del jugador con online_players
+	# FIX v27: en vez de buscar por posición (que puede estar desactualizada
+	# 50ms en un sync de 20Hz), usamos el nombre del nodo del jugador que
+	# codifica su peer_id, o lo comparamos con el player local del servidor.
+	# Como el servidor headless no tiene jugadores locales, buscamos en
+	# online_players el peer cuya escena coincida y cuyo nodo Player sea target.
+	# El método más robusto: el nodo Player en el servidor tiene nombre
+	# "Player_{peer_id}" asignado al spawnearlo — lo usamos directamente.
+	var node_name = target.name  # ej. "Player" o "Player_2"
+	if node_name.begins_with("Player_"):
+		var pid_str = node_name.substr(7)  # quitar "Player_"
+		if pid_str.is_valid_int():
+			return pid_str.to_int()
+	# Fallback: buscar por proximidad de posición (comportamiento anterior)
 	var target_pos = target.global_position
 	for pid in nm.online_players:
 		var pos_d = nm.online_players[pid].get("position", {"x": -99999.0, "y": -99999.0})
 		var pos = Vector2(pos_d.x, pos_d.y)
-		if pos.distance_to(target_pos) < 64.0:
+		if pos.distance_to(target_pos) < 150.0:  # margen más generoso
 			return pid
-	# Si no se encuentra por posición, devolver 0 (desconocido)
+	# Último recurso: si solo hay un cliente conectado, devolverlo directo
+	if nm.online_players.size() == 1:
+		return nm.online_players.keys()[0]
 	return 0
 
 func _spawn_projectile_visual() -> void:
@@ -907,7 +926,10 @@ func take_damage(amount: int, knockback_dir: Vector2 = Vector2.ZERO) -> void:
 
 	# ── v22.2: enrutar por servidor si hay conexión activa ────
 	var nm = get_node_or_null("/root/NetworkManager")
-	if nm and nm.is_client and network_id != 0:
+	var is_online_client := nm and nm.is_client and multiplayer.has_multiplayer_peer() \
+		and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+
+	if is_online_client and network_id != 0:
 		print("[Client][Combat] Habilidad/skill → nid=%d dmg=%d" % [network_id, amount])
 		nm.request_enemy_damage(network_id, amount, knockback_dir)
 		# El servidor aplicará el daño y retransmitirá a todos;
@@ -919,7 +941,27 @@ func take_damage(amount: int, knockback_dir: Vector2 = Vector2.ZERO) -> void:
 			player_ref = get_tree().get_first_node_in_group("player")
 		_broadcast_aggro_to_nearby()
 		return
-	# ── Offline / servidor aplica directamente ────────────────
+
+	# FIX BUG "DOS MUNDOS": si estamos online pero este mob todavía no fue
+	# emparejado con el servidor (network_id == 0 por una carrera de timing
+	# al cargar la zona), NO debemos aplicar el daño localmente — eso es
+	# exactamente lo que causaba que un jugador "limpiara" un camp en su
+	# propio cliente sin que el servidor (fuente de verdad) se enterara,
+	# dejando al otro jugador viendo el camp lleno todavía. En vez de eso:
+	# mostramos feedback visual de que el golpe no contó, y pedimos un
+	# resync inmediato (sin esperar el siguiente tick de reintento) para
+	# resolver el emparejamiento lo antes posible.
+	if is_online_client and network_id == 0:
+		print("[Client][Combat] Golpe descartado — mob aún sin sincronizar (nid=0). Forzando resync.")
+		_show_colored_label("...", Color(0.6, 0.8, 1.0))
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _last_forced_resync_time >= FORCED_RESYNC_COOLDOWN:
+			_last_forced_resync_time = now
+			if nm.has_method("request_enemy_resync"):
+				nm.request_enemy_resync.rpc_id(1)
+		return
+
+	# ── Offline: aplicar directamente ─────────────────────────
 
 	var dmg = max(1, amount - defense)
 	current_hp -= dmg
