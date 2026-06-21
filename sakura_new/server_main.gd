@@ -93,9 +93,8 @@ func _process(delta: float) -> void:
 		_hb_logged = minute
 		var player_count = NetworkManager.online_players.size()
 		var party_count  = NetworkManager._server_parties.size()
-		var save_count   = NetworkManager._server_player_saves.size()
-		print("[Server] Uptime: %ds | Jugadores: %d | Parties: %d | Saves: %d" % [
-			int(_uptime), player_count, party_count, save_count
+		print("[Server] Uptime: %ds | Jugadores: %d | Parties: %d" % [
+			int(_uptime), player_count, party_count
 		])
 
 func _on_player_joined(peer_id: int, data: Dictionary) -> void:
