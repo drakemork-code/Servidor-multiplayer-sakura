@@ -381,8 +381,10 @@ func _send_enemy_list_to_client(peer_id: int) -> void:
 				"max_hp": enemy.get("max_hp"),
 			})
 	print("[Server][Combat] Sincronizando %d enemigos de zona '%s' al peer %d" % [enemy_list.size(), client_scene, peer_id])
-	if enemy_list.size() > 0:
-		_rpc_sync_enemy_list.rpc_id(peer_id, enemy_list)
+	# FIX MOBS FANTASMA: enviar SIEMPRE, incluso si está vacía — si todo el
+	# campamento ya fue limpiado por otro jugador, el cliente nuevo necesita
+	# saberlo igual para borrar los enemigos fantasma que generó localmente.
+	_rpc_sync_enemy_list.rpc_id(peer_id, enemy_list)
 
 # FIX ERROR 3: el cliente puede pedir re-sincronización de enemigos una vez
 # que su escena ha terminado de cargar. Esto resuelve el problema de que
@@ -453,6 +455,22 @@ func _rpc_sync_enemy_list(enemy_list: Array) -> void:
 				best._update_hp_bar()
 			matched += 1
 			print("[Client] Enemy sync: nid=", srv_nid, " dist=", best_dist)
+	# FIX BUG "DOS MUNDOS / MOBS FANTASMA": cualquier enemigo local que NO
+	# se pudo emparejar con la lista del servidor ya no existe ahí (lo mató
+	# otro jugador antes de que entráramos a la zona, o nunca debió spawnear
+	# localmente). La lista del servidor es la verdad completa de la zona —
+	# todo lo que sobra se elimina para que nunca queden mobs "fantasma"
+	# que un jugador ve vivos pero que otros ya mataron.
+	var removed := 0
+	for e in local_enemies:
+		if not is_instance_valid(e):
+			continue
+		var local_nid = e.get("network_id")
+		if local_nid == null or local_nid == 0:
+			e.queue_free()
+			removed += 1
+	if removed > 0:
+		print("[Client][Combat] %d mob(s) fantasma eliminados (no existen en el servidor)" % removed)
 	print("[Client][Combat] Sincronización de enemigos: %d/%d emparejados" % [matched, enemy_list.size()])
 
 @rpc("any_peer", "unreliable_ordered")
