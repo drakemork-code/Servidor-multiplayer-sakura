@@ -958,7 +958,7 @@ func take_damage(amount: int, knockback_dir: Vector2 = Vector2.ZERO) -> void:
 		if now - _last_forced_resync_time >= FORCED_RESYNC_COOLDOWN:
 			_last_forced_resync_time = now
 			if nm.has_method("request_enemy_resync"):
-				nm.request_enemy_resync.rpc_id(1)
+				nm.request_enemy_resync.rpc_id(1, GameManager.current_scene)
 		return
 
 	# ── Offline: aplicar directamente ─────────────────────────

@@ -90,6 +90,12 @@ var _last_port : int    = DEFAULT_PORT
 # un máximo de intentos, en vez de un único disparo a ciegas.
 var _resync_retry_timer   : float = 0.0
 var _resync_retry_count   : int   = 0
+
+# FIX MOBS — rebroadcast periódico del servidor a todos los clientes
+# conectados, para que respawns de campamentos y nuevos enemigos
+# aparezcan sin que el cliente tenga que pedirlo explícitamente.
+var _enemy_broadcast_timer : float = 0.0
+const ENEMY_BROADCAST_INTERVAL_SEC : float = 10.0
 const RESYNC_RETRY_SEC    : float = 1.5
 const RESYNC_MAX_RETRIES  : int   = 8
 
@@ -117,6 +123,18 @@ func _process(delta: float) -> void:
 		if _reconnect_timer >= RECONNECT_DELAY:
 			_reconnect_timer = 0.0
 			join_server(_last_host, _last_port)
+	# FIX MOBS — el servidor le reenvía su lista de enemigos a cada cliente
+	# conectado cada ENEMY_BROADCAST_INTERVAL_SEC, sin que el cliente tenga
+	# que pedirlo. Así, si un campamento respawnea mientras alguien ya está
+	# ahí parado, ese jugador lo ve aparecer solo, sin reentrar al mapa.
+	if is_server:
+		_enemy_broadcast_timer += delta
+		if _enemy_broadcast_timer >= ENEMY_BROADCAST_INTERVAL_SEC:
+			_enemy_broadcast_timer = 0.0
+			for pid in online_players:
+				var pscene: String = online_players[pid].get("scene", "")
+				if not pscene.is_empty():
+					_send_enemy_list_to_client(pid, pscene)
 
 # FIX BUG "DOS MUNDOS": reintenta el resync de enemigos (y de jugadores)
 # mientras existan enemigos locales sin network_id asignado por el servidor.
@@ -361,7 +379,7 @@ func _recv_appearance_update(peer_id: int, data: Dictionary) -> void:
 			elif node.has_method("setup"):
 				node.setup(online_players[peer_id])
 
-func _send_enemy_list_to_client(peer_id: int) -> void:
+func _send_enemy_list_to_client(peer_id: int, scene_override: String = "") -> void:
 	var em = get_node_or_null("/root/EnemyManager")
 	if not em:
 		return
@@ -369,12 +387,21 @@ func _send_enemy_list_to_client(peer_id: int) -> void:
 	# El servidor mantiene los 4 mapas cargados a la vez; sin este filtro se
 	# enviaba la lista completa de los 4 mundos mezclada, causando matches
 	# por proximidad ambiguos/cruzados entre mapas con coordenadas similares.
-	var client_scene: String = online_players.get(peer_id, {}).get("scene", "")
+	# FIX RACE: usar el scene_path que el cliente mandó directamente en el
+	# mismo request (scene_override) en vez de online_players[peer]["scene"],
+	# que se actualiza por el paquete de posición (unreliable, throttle) y
+	# podía llegar tarde o ir vacío justo cuando se pedía el resync —
+	# causando una lista vacía y, con el fix de limpieza, borrando todo.
+	var client_scene: String = scene_override
+	if client_scene.is_empty():
+		client_scene = online_players.get(peer_id, {}).get("scene", "")
 	var enemy_list : Array = []
 	for enemy in em.active_enemies:
 		if is_instance_valid(enemy) and enemy.get("zone_scene_path") == client_scene:
 			enemy_list.append({
 				"network_id": enemy.get("network_id"),
+				"type":       enemy.get("enemy_type"),
+				"level":      enemy.get("enemy_level"),
 				"x": enemy.global_position.x,
 				"y": enemy.global_position.y,
 				"current_hp": enemy.get("current_hp") if enemy.get("current_hp") != null else enemy.get("max_hp"),
@@ -390,15 +417,17 @@ func _send_enemy_list_to_client(peer_id: int) -> void:
 # que su escena ha terminado de cargar. Esto resuelve el problema de que
 # _send_enemy_list_to_client se ejecutaba antes de que los enemigos locales
 # existieran en el árbol de la nueva escena.
+# FIX RACE: ahora recibe la escena directo del cliente en vez de leerla de
+# online_players (ver nota en _send_enemy_list_to_client).
 @rpc("any_peer", "reliable")
-func request_enemy_resync() -> void:
+func request_enemy_resync(scene_path: String = "") -> void:
 	if not is_server:
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	print("[Server] Resync de enemigos solicitado por peer %d" % sender)
+	print("[Server] Resync de enemigos solicitado por peer %d (escena='%s')" % [sender, scene_path])
 	# Esperar 1 frame para que cualquier spawn pendiente del servidor haya ocurrido
 	await get_tree().process_frame
-	_send_enemy_list_to_client(sender)
+	_send_enemy_list_to_client(sender, scene_path)
 
 # FIX BUG CRÍTICO: nombres/skins/habilidades de otros jugadores no se veían.
 # Causa: _spawn_remote_node() descarta el spawn si data.scene != mi escena
@@ -426,52 +455,71 @@ func request_player_resync() -> void:
 
 @rpc("authority", "reliable")
 func _rpc_sync_enemy_list(enemy_list: Array) -> void:
-	# Asignar network_ids del servidor a los enemigos locales por proximidad
-	var local_enemies = get_tree().get_nodes_in_group("enemy")
-	var matched := 0
+	# REESCRITO — antes el cliente generaba sus propios mobs localmente y
+	# trataba de "adivinar" cuáles correspondían a la lista del servidor
+	# por proximidad. Eso causaba mobs fantasma (instancias que ya no
+	# existían en el servidor pero el cliente nunca se enteraba) y, si la
+	# escena que el servidor reportaba estaba vacía o no coincidía, podía
+	# borrar TODO. Ahora el cliente no genera nada por su cuenta para
+	# mobs: el servidor es la única fuente de verdad — el cliente solo
+	# crea/actualiza/borra nodos según lo que el servidor le manda aquí.
+	var em = get_node_or_null("/root/EnemyManager")
+	var cur_scene = get_tree().current_scene
+	if not em or not cur_scene:
+		return
+
+	# nid -> Node de los enemigos que YA existen en el cliente (creados por
+	# una sincronización anterior), para no recrearlos cada vez.
+	var existing_by_nid: Dictionary = {}
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if is_instance_valid(e):
+			var nid = e.get("network_id")
+			if nid != null and nid != 0:
+				existing_by_nid[nid] = e
+
+	var seen_nids: Dictionary = {}
+	var created := 0
+	var updated := 0
 	for edata in enemy_list:
-		var srv_nid : int     = edata.get("network_id", 0)
-		var srv_pos : Vector2 = Vector2(edata.get("x", 0.0), edata.get("y", 0.0))
-		var srv_hp  : int     = edata.get("current_hp", 0)
+		var srv_nid : int    = edata.get("network_id", 0)
 		if srv_nid == 0:
 			continue
-		var best      : Node  = null
-		var best_dist : float = 999999.0
-		for e in local_enemies:
-			if not is_instance_valid(e):
-				continue
-			var local_nid = e.get("network_id")
-			if local_nid != null and local_nid != 0:
-				continue
-			var d = e.global_position.distance_to(srv_pos)
-			if d < best_dist:
-				best_dist = d
-				best = e
-		if is_instance_valid(best) and best_dist < 120.0:
-			best.set("network_id", srv_nid)
-			if best.get("current_hp") != null:
-				best.set("current_hp", srv_hp)
-			if best.has_method("_update_hp_bar"):
-				best._update_hp_bar()
-			matched += 1
-			print("[Client] Enemy sync: nid=", srv_nid, " dist=", best_dist)
-	# FIX BUG "DOS MUNDOS / MOBS FANTASMA": cualquier enemigo local que NO
-	# se pudo emparejar con la lista del servidor ya no existe ahí (lo mató
-	# otro jugador antes de que entráramos a la zona, o nunca debió spawnear
-	# localmente). La lista del servidor es la verdad completa de la zona —
-	# todo lo que sobra se elimina para que nunca queden mobs "fantasma"
-	# que un jugador ve vivos pero que otros ya mataron.
+		seen_nids[srv_nid] = true
+		var srv_pos : Vector2 = Vector2(edata.get("x", 0.0), edata.get("y", 0.0))
+		var srv_hp  : int     = edata.get("current_hp", 0)
+		var srv_type: String  = edata.get("type", "slime")
+		var srv_lv  : int     = edata.get("level", 1)
+
+		if existing_by_nid.has(srv_nid):
+			var e = existing_by_nid[srv_nid]
+			if e.get("current_hp") != null:
+				e.set("current_hp", srv_hp)
+			if e.has_method("_update_hp_bar"):
+				e._update_hp_bar()
+			updated += 1
+		else:
+			# No existe en el cliente todavía — el SERVIDOR ya lo creó,
+			# el cliente solo necesita su representación visual.
+			var enemy = em.spawn_enemy(srv_type, srv_pos, srv_lv, cur_scene)
+			if enemy:
+				enemy.set("network_id", srv_nid)
+				if enemy.get("current_hp") != null:
+					enemy.set("current_hp", srv_hp)
+				if enemy.has_method("_update_hp_bar"):
+					enemy._update_hp_bar()
+				created += 1
+
+	# Cualquier enemigo que el cliente tiene pero ya NO está en la lista
+	# del servidor significa que murió (u otro jugador lo mató) — se borra.
 	var removed := 0
-	for e in local_enemies:
-		if not is_instance_valid(e):
-			continue
-		var local_nid = e.get("network_id")
-		if local_nid == null or local_nid == 0:
-			e.queue_free()
-			removed += 1
-	if removed > 0:
-		print("[Client][Combat] %d mob(s) fantasma eliminados (no existen en el servidor)" % removed)
-	print("[Client][Combat] Sincronización de enemigos: %d/%d emparejados" % [matched, enemy_list.size()])
+	for nid in existing_by_nid:
+		if not seen_nids.has(nid):
+			var e = existing_by_nid[nid]
+			if is_instance_valid(e):
+				e.queue_free()
+				removed += 1
+	print("[Client][Combat] Sync de enemigos: %d creados, %d actualizados, %d eliminados (total servidor: %d)" %
+		[created, updated, removed, enemy_list.size()])
 
 @rpc("any_peer", "unreliable_ordered")
 func _update_player_state(scene: String, pos: Dictionary, hp: int, max_hp: int, anim: String, facing: int) -> void:

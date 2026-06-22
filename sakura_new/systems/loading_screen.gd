@@ -307,7 +307,7 @@ func _finish_and_change() -> void:
 		# como fast-path, pero ya no es el único intento posible.
 		if _nm_ls.has_method("reset_resync_retries"):
 			_nm_ls.reset_resync_retries()
-		_nm_ls.request_enemy_resync.rpc_id(1)
+		_nm_ls.request_enemy_resync.rpc_id(1, GameManager.current_scene)
 		print("[LoadingScreen] Enemy resync solicitado al servidor para zona: ", GameManager.current_scene)
 		# FIX BUG CRÍTICO: mismo resync pero para jugadores remotos (nombres,
 		# skins, habilidades). Antes solo existía resync de enemigos, así que

@@ -123,8 +123,13 @@ func _ready() -> void:
 		_spawn_player()
 	_setup_borders()
 	# Diferir spawns para que get_tree().current_scene apunte a esta escena
-	call_deferred("_spawn_all_camps")
-	call_deferred("_spawn_scattered_enemies")
+	# FIX MOBS: solo el SERVIDOR genera campamentos/enemigos — el cliente
+	# ya no spawnea nada localmente, los recibe creados por el servidor
+	# vía _rpc_sync_enemy_list (ver network_manager.gd). Los recursos
+	# (minerales/hierbas/árboles) SÍ se quedan locales por jugador.
+	if _srv:
+		call_deferred("_spawn_all_camps")
+		call_deferred("_spawn_scattered_enemies")
 	call_deferred("_spawn_resource_nodes")
 	if not _srv:
 		_draw_boss_altar(Vector2(0, SCENE_HEIGHT / 2))
