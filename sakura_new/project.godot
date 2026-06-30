@@ -25,12 +25,7 @@ GameManager="*res://systems/game_manager.gd"
 PlayerData="*res://systems/player_data.gd"
 InventoryManager="*res://systems/inventory_manager.gd"
 EnemyManager="*res://systems/enemy_manager.gd"
-AuctionManager="*res://systems/auction_manager.gd"
-PartyManager="*res://systems/party_manager.gd"
 ChatManager="*res://systems/chat_manager.gd"
-GuildManager="*res://systems/guild_manager.gd"
-DailyLoopManager="*res://systems/daily_loop_manager.gd"
-AchievementManager="*res://systems/achievement_manager.gd"
 BossNotifManager="*res://systems/boss_notification_manager.gd"
 
 [display]

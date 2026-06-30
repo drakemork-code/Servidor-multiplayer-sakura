@@ -200,10 +200,8 @@ func get_game_ui() -> Node:
 func save_game() -> void:
 	PlayerData.save_character_data()
 	PlayerData.flush_pending_server_save()
-	BankManager.save_bank_data()
 	print("[GameManager] Juego guardado (local + servidor)")
 
 func load_game() -> void:
 	PlayerData.load_character_data()
-	BankManager.load_bank_data()
 	print("[GameManager] Juego cargado")
