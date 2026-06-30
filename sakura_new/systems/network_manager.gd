@@ -435,6 +435,10 @@ func request_enemy_resync(scene_path: String = "") -> void:
 		return
 	var sender := multiplayer.get_remote_sender_id()
 	print("[Server] Resync de enemigos solicitado por peer %d (escena='%s')" % [sender, scene_path])
+	# Si el cliente manda una escena válida, actualizamos su registro para
+	# corregir el caso donde se conectó antes de que la escena cargara.
+	if not scene_path.is_empty() and sender in online_players:
+		online_players[sender]["scene"] = scene_path
 	# Esperar 1 frame para que cualquier spawn pendiente del servidor haya ocurrido
 	await get_tree().process_frame
 	_send_enemy_list_to_client(sender, scene_path)
