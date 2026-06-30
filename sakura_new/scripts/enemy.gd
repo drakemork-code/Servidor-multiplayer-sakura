@@ -1130,7 +1130,7 @@ func _drop_rewards() -> void:
 		PlayerData.gain_xp(xp_reward)
 
 	if has_node("/root/PartyManager"):
-		PartyManager.share_xp(xp_reward, global_position)
+		get_node("/root/PartyManager").share_xp(xp_reward, global_position)
 
 # ════════════════════════════════════════════════════════════
 # EFECTOS VISUALES
