@@ -151,7 +151,9 @@ func _process_resync_retry(delta: float) -> void:
 		_resync_retry_timer = 0.0
 		_resync_retry_count += 1
 		print("[Client] Reintento de resync #%d (quedan enemigos locales sin network_id)" % _resync_retry_count)
-		request_enemy_resync.rpc_id(1)
+		var _rsync_scene: String = GameManager.current_scene if not GameManager.current_scene.is_empty() \
+				else get_tree().current_scene.scene_file_path
+		request_enemy_resync.rpc_id(1, _rsync_scene)
 		request_player_resync.rpc_id(1)
 
 # True si hay al menos un nodo del grupo "enemy" en la escena actual con
@@ -269,7 +271,11 @@ func _build_my_data() -> Dictionary:
 		"hp":         PlayerData.hp,
 		"max_hp":     PlayerData.max_hp,
 		"level":      PlayerData.level,
-		"scene":      GameManager.current_scene,
+		# FIX ESCENA VACÍA: GameManager.current_scene puede estar vacío si la
+		# conexión ocurre antes de que change_scene() haya sido llamado.
+		# Usamos scene_file_path del árbol como fallback garantizado.
+		"scene": GameManager.current_scene if not GameManager.current_scene.is_empty() \
+				else get_tree().current_scene.scene_file_path,
 		"position":   _get_my_position(),
 		"anim":       "idle",
 		"facing":     1,
@@ -299,8 +305,10 @@ func _send_my_state() -> void:
 	if p:
 		anim   = p._anim_current if "_anim_current" in p else "idle"
 		facing = 1 if (p.facing_right if "facing_right" in p else true) else -1
+	var _cur_scene: String = GameManager.current_scene if not GameManager.current_scene.is_empty() \
+			else get_tree().current_scene.scene_file_path
 	_update_player_state.rpc(
-		GameManager.current_scene,
+		_cur_scene,
 		_get_my_position(),
 		PlayerData.hp,
 		PlayerData.max_hp,
