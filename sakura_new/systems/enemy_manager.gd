@@ -195,6 +195,11 @@ const ENEMY_CONFIGS: Dictionary = {
 var _enemy_scene: PackedScene = null
 var active_enemies: Array = []
 
+# ── Registro de campamentos (camp_id → cantidad de mobs vivos) ──
+# Permite al servidor saber cuándo un campamento quedó "limpio" para
+# notificar a los clientes y desbloquear el cofre correspondiente.
+var camp_alive_count: Dictionary = {}
+
 func _ready() -> void:
 	print("[EnemyManager] Inicializado v22.2")
 	_preload_scene()
@@ -209,7 +214,7 @@ func _preload_scene() -> void:
 # SPAWN
 # ──────────────────────────────────────────────
 
-func spawn_enemy(enemy_type: String, position: Vector2, level: int = 1, parent_override: Node = null) -> Node:
+func spawn_enemy(enemy_type: String, position: Vector2, level: int = 1, parent_override: Node = null, camp_id: int = 0) -> Node:
 	if not _enemy_scene:
 		_preload_scene()
 	if not _enemy_scene:
@@ -234,6 +239,9 @@ func spawn_enemy(enemy_type: String, position: Vector2, level: int = 1, parent_o
 	enemy.bronze_max    = config.get("bronze_max", 0)
 	enemy.sprite_type   = config.get("sprite_type", "goblin")
 	enemy.behavior_type = config.get("behavior_type", "normal")
+	enemy.set("camp_id", camp_id)
+	if camp_id != 0:
+		camp_alive_count[camp_id] = camp_alive_count.get(camp_id, 0) + 1
 
 	var is_boss_type = config.get("is_boss", false) or config.get("is_miniboss", false)
 	if enemy_type == "dungeon_boss" or enemy_type == "demon_lord" or is_boss_type:
@@ -309,6 +317,17 @@ func despawn_all() -> void:
 
 func on_enemy_died(enemy: Node) -> void:
 	active_enemies.erase(enemy)
+
+# Llamar SOLO en el servidor cuando un enemigo con camp_id muere.
+# Retorna true si era el último mob vivo de ese campamento (camp limpio).
+func register_camp_enemy_death(camp_id: int) -> bool:
+	if camp_id == 0 or not camp_alive_count.has(camp_id):
+		return false
+	camp_alive_count[camp_id] = max(0, camp_alive_count[camp_id] - 1)
+	if camp_alive_count[camp_id] == 0:
+		camp_alive_count.erase(camp_id)
+		return true
+	return false
 
 # ──────────────────────────────────────────────
 # UTILIDADES

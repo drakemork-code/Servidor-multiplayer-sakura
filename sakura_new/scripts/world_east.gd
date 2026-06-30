@@ -58,6 +58,9 @@ var _boss_defeated: bool = false
 var _boss_node:     Node = null
 var _camps: Array = []
 
+func _camp_id_for(center: Vector2) -> int:
+	return int(center.x) * 73856093 ^ int(center.y) * 19349663
+
 
 func _ready() -> void:
 	print("[WorldEast] Mapa expandido cargado — 200+ players")
@@ -379,7 +382,8 @@ func _spawn_all_camps() -> void:
 
 func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 				 lv_min: int, lv_max: int, ring: String) -> void:
-	var camp = {"center": center, "enemies": [], "chest_looted": false}
+	var camp_id: int = _camp_id_for(center)
+	var camp = {"center": center, "enemies": [], "chest_looted": false, "camp_id": camp_id, "mob_type": mob_type, "camp_name": camp_name}
 	_draw_camp_ground(center, ring)
 	_draw_campfire(center + Vector2(0, 60))
 	_draw_camp_tent(center + Vector2(-165, 30))
@@ -418,7 +422,7 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 			slot_rng.seed = slot_seed
 			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
-				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
+				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self, camp_id)
 				if e:
 					camp["enemies"].append(e)
 					alive_ref[0] += 1
@@ -477,6 +481,7 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 		Vector2(-25, 60), Vector2( 25,  60)
 	]
 	var alive_ref = [0]
+	var camp_id: int = _camp_id_for(center)
 	if has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
@@ -489,7 +494,7 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 			slot_rng.seed = slot_seed
 			var lv = slot_rng.randi_range(lv_min, lv_max)
 			if em.has_method("spawn_enemy"):
-				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self)
+				var e = em.spawn_enemy(mob_type, center + offsets[i], lv, self, camp_id)
 				if e:
 					alive_ref[0] += 1
 					var c_chest    = chest_area

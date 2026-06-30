@@ -37,6 +37,10 @@ class_name Enemy
 # ── ID de red único (asignado por EnemyManager al spawnear) ──
 # Permite que el servidor identifique a qué enemigo se está golpeando.
 var network_id: int = 0
+# ID determinístico del campamento al que pertenece este mob (0 = sin camp,
+# ej. enemigos dispersos). Usado por el servidor para saber cuándo un
+# campamento quedó limpio y notificar al cliente para desbloquear el cofre.
+var camp_id: int = 0
 # Cooldown para no espamear request_enemy_resync si el jugador golpea
 # repetidamente un mob que todavía no tiene network_id (ver take_damage).
 var _last_forced_resync_time: float = -999.0

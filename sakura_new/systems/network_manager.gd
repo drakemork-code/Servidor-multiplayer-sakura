@@ -41,6 +41,7 @@ signal chat_message_received(channel: String, sender: String, text: String, colo
 signal server_shutdown_warning(seconds: int)
 signal party_invite_received(from_name: String, from_peer_id: int)
 signal party_updated()
+signal camp_cleared(camp_id: int)
 
 # ── Config ────────────────────────────────────────────────────
 const DEFAULT_HOST    : String = "127.0.0.1"
@@ -661,6 +662,15 @@ func _rpc_enemy_damage(enemy_network_id: int, damage: int, kb: Dictionary, attac
 	if e.current_hp <= 0:
 		print("[Server][Combat] Enemigo nid=%d murió — repartiendo recompensas" % enemy_network_id)
 		_server_kill_enemy(e, enemy_network_id, scene)
+		# ── Campamentos: si era el último mob vivo del camp, avisar a la
+		# party del killer para que desbloqueen el cofre correspondiente.
+		var camp_id: int = e.get("camp_id") if e.get("camp_id") != null else 0
+		if camp_id != 0:
+			var em = get_node_or_null("/root/EnemyManager")
+			if em and em.has_method("register_camp_enemy_death"):
+				var camp_cleared: bool = em.register_camp_enemy_death(camp_id)
+				if camp_cleared:
+					_notify_camp_cleared(camp_id, sender_id, scene)
 
 @rpc("authority", "reliable")
 func _rpc_enemy_sync_hp(enemy_network_id: int, new_hp: int, max_hp: int, dmg_shown: int, kb: Dictionary) -> void:
@@ -692,6 +702,25 @@ func _server_kill_enemy(e: Node, enemy_network_id: int, scene: String) -> void:
 	for pid in online_players:
 		if online_players[pid].get("scene","") == scene:
 			_rpc_enemy_killed.rpc_id(pid, enemy_network_id, loot_data)
+
+# Un campamento quedó sin mobs vivos: el cofre solo debe desbloquearse para
+# quien lo limpió y su party (no para cualquier jugador que pase por la zona).
+# Resolvemos la party del killer en _server_parties y notificamos SOLO a
+# esos peers (filtrados además por estar en la misma escena/zona).
+func _notify_camp_cleared(camp_id: int, killer_peer_id: int, scene: String) -> void:
+	var recipients: Array = [killer_peer_id]
+	for party_id in _server_parties:
+		var party = _server_parties[party_id]
+		if killer_peer_id in party:
+			recipients = party.duplicate()
+			break
+	for pid in recipients:
+		if online_players.get(pid, {}).get("scene", "") == scene:
+			_rpc_camp_cleared.rpc_id(pid, camp_id)
+
+@rpc("authority", "reliable")
+func _rpc_camp_cleared(camp_id: int) -> void:
+	camp_cleared.emit(camp_id)
 
 @rpc("authority", "reliable")
 func _rpc_enemy_killed(enemy_network_id: int, loot: Dictionary) -> void:
