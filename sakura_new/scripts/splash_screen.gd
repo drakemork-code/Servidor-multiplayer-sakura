@@ -42,6 +42,10 @@ var _layer_petals   : CanvasLayer  # pétalos encima de TODO
 var _layer_overlay  : CanvasLayer  # fade negro, lo más encima
 
 func _ready() -> void:
+	# En modo servidor headless, saltar splash inmediatamente
+	if "--server" in OS.get_cmdline_args() or "--server" in OS.get_cmdline_user_args():
+		queue_free()
+		return
 	await get_tree().process_frame
 	_vp = get_viewport().get_visible_rect().size
 	_build_scene()

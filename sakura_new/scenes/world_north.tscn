@@ -1,9 +1,6 @@
-[gd_scene load_steps=11 format=3 uid="uid://world_north"]
+[gd_scene load_steps=8 format=3 uid="uid://world_north"]
 
 [ext_resource type="Script" path="res://scripts/world_north.gd" id="1_north"]
-[ext_resource type="PackedScene" uid="uid://utdhj06ec4os" path="res://scenes/player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://game_ui_main" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
-[ext_resource type="Texture2D" path="res://assets/decorations/town_tree_b_strip4.png" id="4_tree_b"]
 
 [sub_resource type="RectangleShape2D" id="RS_1631046259"]
 size = Vector2(6000, 28)
@@ -115,7 +112,6 @@ color = Color(0.08, 0.05, 0.18, 0.4)
 
 [node name="Tree1" type="Sprite2D" parent="Decorations/Trees" unique_id=760381567]
 position = Vector2(1495, -844)
-texture = ExtResource("4_tree_b")
 z_index = 85
 texture_filter = 1
 region_enabled = true
@@ -124,7 +120,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree2" type="Sprite2D" parent="Decorations/Trees" unique_id=614219931]
 position = Vector2(1868, -166)
-texture = ExtResource("4_tree_b")
 z_index = 17
 texture_filter = 1
 region_enabled = true
@@ -133,7 +128,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree3" type="Sprite2D" parent="Decorations/Trees" unique_id=224393357]
 position = Vector2(1860, -285)
-texture = ExtResource("4_tree_b")
 z_index = 29
 texture_filter = 1
 region_enabled = true
@@ -142,7 +136,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree4" type="Sprite2D" parent="Decorations/Trees" unique_id=617267796]
 position = Vector2(45, -1022)
-texture = ExtResource("4_tree_b")
 z_index = 103
 texture_filter = 1
 region_enabled = true
@@ -151,7 +144,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree5" type="Sprite2D" parent="Decorations/Trees" unique_id=1985511260]
 position = Vector2(-1787, 167)
-texture = ExtResource("4_tree_b")
 z_index = 17
 texture_filter = 1
 region_enabled = true
@@ -160,7 +152,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree6" type="Sprite2D" parent="Decorations/Trees" unique_id=1318389745]
 position = Vector2(1122, -1548)
-texture = ExtResource("4_tree_b")
 z_index = 155
 texture_filter = 1
 region_enabled = true
@@ -169,7 +160,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree7" type="Sprite2D" parent="Decorations/Trees" unique_id=269129475]
 position = Vector2(-2535, 1607)
-texture = ExtResource("4_tree_b")
 z_index = 161
 texture_filter = 1
 region_enabled = true
@@ -178,7 +168,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree8" type="Sprite2D" parent="Decorations/Trees" unique_id=283939380]
 position = Vector2(-2022, -1294)
-texture = ExtResource("4_tree_b")
 z_index = 130
 texture_filter = 1
 region_enabled = true
@@ -187,7 +176,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree9" type="Sprite2D" parent="Decorations/Trees" unique_id=1671759591]
 position = Vector2(2220, -1265)
-texture = ExtResource("4_tree_b")
 z_index = 127
 texture_filter = 1
 region_enabled = true
@@ -196,7 +184,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree10" type="Sprite2D" parent="Decorations/Trees" unique_id=1143656560]
 position = Vector2(2654, -191)
-texture = ExtResource("4_tree_b")
 z_index = 20
 texture_filter = 1
 region_enabled = true
@@ -205,7 +192,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree11" type="Sprite2D" parent="Decorations/Trees" unique_id=1852396592]
 position = Vector2(1965, -1660)
-texture = ExtResource("4_tree_b")
 z_index = 167
 texture_filter = 1
 region_enabled = true
@@ -214,7 +200,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree12" type="Sprite2D" parent="Decorations/Trees" unique_id=248632740]
 position = Vector2(232, -357)
-texture = ExtResource("4_tree_b")
 z_index = 36
 texture_filter = 1
 region_enabled = true
@@ -223,7 +208,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree13" type="Sprite2D" parent="Decorations/Trees" unique_id=1733380706]
 position = Vector2(1961, -3)
-texture = ExtResource("4_tree_b")
 z_index = 1
 texture_filter = 1
 region_enabled = true
@@ -232,7 +216,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree14" type="Sprite2D" parent="Decorations/Trees" unique_id=1243977779]
 position = Vector2(1414, -891)
-texture = ExtResource("4_tree_b")
 z_index = 90
 texture_filter = 1
 region_enabled = true
@@ -241,7 +224,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree15" type="Sprite2D" parent="Decorations/Trees" unique_id=1744616922]
 position = Vector2(1612, 1605)
-texture = ExtResource("4_tree_b")
 z_index = 161
 texture_filter = 1
 region_enabled = true
@@ -250,7 +232,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree16" type="Sprite2D" parent="Decorations/Trees" unique_id=370068648]
 position = Vector2(-2826, 866)
-texture = ExtResource("4_tree_b")
 z_index = 87
 texture_filter = 1
 region_enabled = true
@@ -259,7 +240,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree17" type="Sprite2D" parent="Decorations/Trees" unique_id=375718574]
 position = Vector2(-1982, 872)
-texture = ExtResource("4_tree_b")
 z_index = 88
 texture_filter = 1
 region_enabled = true
@@ -268,7 +248,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree18" type="Sprite2D" parent="Decorations/Trees" unique_id=1516804102]
 position = Vector2(1478, 1155)
-texture = ExtResource("4_tree_b")
 z_index = 116
 texture_filter = 1
 region_enabled = true
@@ -277,7 +256,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree19" type="Sprite2D" parent="Decorations/Trees" unique_id=1120661135]
 position = Vector2(-735, 1228)
-texture = ExtResource("4_tree_b")
 z_index = 123
 texture_filter = 1
 region_enabled = true
@@ -286,7 +264,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree20" type="Sprite2D" parent="Decorations/Trees" unique_id=1280694232]
 position = Vector2(2330, -527)
-texture = ExtResource("4_tree_b")
 z_index = 53
 texture_filter = 1
 region_enabled = true
@@ -295,7 +272,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree21" type="Sprite2D" parent="Decorations/Trees" unique_id=454607445]
 position = Vector2(-2007, -718)
-texture = ExtResource("4_tree_b")
 z_index = 72
 texture_filter = 1
 region_enabled = true
@@ -304,7 +280,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree22" type="Sprite2D" parent="Decorations/Trees" unique_id=669204769]
 position = Vector2(641, -1273)
-texture = ExtResource("4_tree_b")
 z_index = 128
 texture_filter = 1
 region_enabled = true
@@ -313,7 +288,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree23" type="Sprite2D" parent="Decorations/Trees" unique_id=1233170817]
 position = Vector2(796, -1907)
-texture = ExtResource("4_tree_b")
 z_index = 191
 texture_filter = 1
 region_enabled = true
@@ -322,7 +296,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree24" type="Sprite2D" parent="Decorations/Trees" unique_id=1973535693]
 position = Vector2(-763, 130)
-texture = ExtResource("4_tree_b")
 z_index = 14
 texture_filter = 1
 region_enabled = true
@@ -331,7 +304,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree25" type="Sprite2D" parent="Decorations/Trees" unique_id=1402650515]
 position = Vector2(-1457, 159)
-texture = ExtResource("4_tree_b")
 z_index = 16
 texture_filter = 1
 region_enabled = true
@@ -340,7 +312,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree26" type="Sprite2D" parent="Decorations/Trees" unique_id=1008681807]
 position = Vector2(-2049, 1645)
-texture = ExtResource("4_tree_b")
 z_index = 165
 texture_filter = 1
 region_enabled = true
@@ -349,7 +320,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree27" type="Sprite2D" parent="Decorations/Trees" unique_id=554833168]
 position = Vector2(2202, -698)
-texture = ExtResource("4_tree_b")
 z_index = 70
 texture_filter = 1
 region_enabled = true
@@ -358,7 +328,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree28" type="Sprite2D" parent="Decorations/Trees" unique_id=2094826543]
 position = Vector2(2314, 159)
-texture = ExtResource("4_tree_b")
 z_index = 16
 texture_filter = 1
 region_enabled = true
@@ -367,7 +336,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree29" type="Sprite2D" parent="Decorations/Trees" unique_id=1258129533]
 position = Vector2(2068, -1106)
-texture = ExtResource("4_tree_b")
 z_index = 111
 texture_filter = 1
 region_enabled = true
@@ -376,7 +344,6 @@ region_rect = Rect2(0, 0, 84, 129)
 
 [node name="Tree30" type="Sprite2D" parent="Decorations/Trees" unique_id=1721919657]
 position = Vector2(-1668, -389)
-texture = ExtResource("4_tree_b")
 z_index = 39
 texture_filter = 1
 region_enabled = true
