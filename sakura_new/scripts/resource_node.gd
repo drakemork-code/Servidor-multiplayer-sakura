@@ -207,6 +207,9 @@ func _ready() -> void:
 # ══════════════════════════════════════════════════════════════
 
 func _build_visuals() -> void:
+	# En servidor headless no hay visuals — evitar carga de texturas
+	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
+		return
 	var cfg: Dictionary = _get_config()
 
 	# ── Para árboles: usar spritesheet animado si está disponible ──
