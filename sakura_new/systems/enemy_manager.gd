@@ -260,7 +260,17 @@ func spawn_enemy(enemy_type: String, position: Vector2, level: int = 1, parent_o
 	if current_scene:
 		current_scene.add_child(enemy)
 		enemy.global_position = position
-		enemy.zone_scene_path = current_scene.scene_file_path
+		# FIX ZONE BUG: con las 4 escenas de mundo cargadas a la vez en el
+		# servidor headless (instanciadas en rápida sucesión vía
+		# call_deferred desde server_main.gd), scene_file_path puede no
+		# resolverse de forma fiable por instancia, causando que enemigos
+		# de una zona queden etiquetados con el path de otra y rompiendo
+		# el filtro de _send_enemy_list_to_client(). Usamos la constante
+		# ZONE_PATH explícita de cada script de mundo cuando existe.
+		if "ZONE_PATH" in current_scene:
+			enemy.zone_scene_path = current_scene.ZONE_PATH
+		else:
+			enemy.zone_scene_path = current_scene.scene_file_path
 		# ── Asignar network_id ─────────────────────────────────
 		# Servidor: asignar ID único autoritativo.
 		# Cliente online: dejar en 0, el servidor enviará el ID real

@@ -8,6 +8,13 @@
 
 extends Node2D
 
+# FIX ZONE BUG: ruta explícita y determinista de esta zona, usada por
+# enemy_manager.gd para etiquetar zone_scene_path de cada enemigo.
+# No depender de scene_file_path: con las 4 escenas de mundo instanciadas
+# en rápida sucesión (call_deferred) desde server_main.gd, scene_file_path
+# puede no resolverse de forma fiable por instancia en ese escenario.
+const ZONE_PATH: String = "res://scenes/world_south.tscn"
+
 # ============================================================
 # WORLD SOUTH — Praderas del Sur y Bosque Goblin
 # VERSION VOID MEGAPACK — Assets pixel-art Void/Goblin
