@@ -138,3 +138,7 @@ pointing/emulate_touch_from_mouse=true
 
 textures/canvas_textures/default_texture_filter=0
 environment/defaults/default_clear_color=Color(0.05, 0.05, 0.1, 1)
+
+[memory]
+
+limits/message_queue/max_size_mb=64

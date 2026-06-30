@@ -113,12 +113,12 @@ func _ready() -> void:
 	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
 	if not _srv:
 		GameManager.ensure_player_and_ui(self)
-	_draw_background()
-	_draw_ring_overlays()
-	_draw_terrain_features()
 	if not _srv:
+		_draw_background()
+		_draw_ring_overlays()
+		_draw_terrain_features()
 		_animate_scene_trees()
-	call_deferred("_setup_camera_limits")
+		call_deferred("_setup_camera_limits")
 	if not _srv:
 		_spawn_player()
 	_setup_borders()
@@ -363,8 +363,9 @@ func _draw_swamp_pool(pos: Vector2, size: Vector2) -> void:
 # ════════════════════════════════════════════════════════════
 
 func _setup_camera_limits() -> void:
-	# Se llama con call_deferred para que la Camera2D del Player
-	# ya esté en el árbol al momento de configurar los límites.
+	# Solo aplica en cliente; en servidor no hay cámara
+	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
+		return
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.limit_left   = -SCENE_WIDTH  / 2; cam.limit_right  = SCENE_WIDTH  / 2

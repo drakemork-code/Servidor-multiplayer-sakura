@@ -401,6 +401,8 @@ func _draw_dark_pool(pos: Vector2, size: Vector2) -> void:
 # ════════════════════════════════════════════════════════════
 
 func _setup_camera_limits() -> void:
+	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
+		return
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.limit_left   = -SCENE_WIDTH  / 2
