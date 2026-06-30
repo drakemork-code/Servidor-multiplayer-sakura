@@ -249,7 +249,10 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	if is_server:
 		online_players.erase(peer_id)
 		_cleanup_party_for_peer(peer_id)
-		_last_attack_time.erase(peer_id)
+		var _atk_keys = []
+			for _k in _last_attack_time:
+				if _k.begins_with(str(peer_id) + ":"): _atk_keys.append(_k)
+			for _k in _atk_keys: _last_attack_time.erase(_k)
 		_notify_player_left.rpc(peer_id)
 	_remove_remote_node(peer_id)
 	player_left.emit(peer_id)
@@ -609,11 +612,12 @@ func _rpc_enemy_damage(enemy_network_id: int, damage: int, kb: Dictionary, attac
 	print("[Server][Combat] Ataque recibido de peer %d — nid=%d dmg_solicitado=%d" % [sender_id, enemy_network_id, damage])
 	# Validar cooldown — rechazar ataques demasiado seguidos (spam/cheat)
 	var now := Time.get_ticks_msec() / 1000.0
-	var last_atk: float = _last_attack_time.get(sender_id, -999.0)
+	var atk_key = "%d:%d" % [sender_id, enemy_network_id]
+	var last_atk: float = _last_attack_time.get(atk_key, -999.0)
 	if now - last_atk < MIN_ATTACK_INTERVAL:
 		print("[Server][Combat] RECHAZADO — cooldown violado por peer %d (%.3fs desde el último)" % [sender_id, now - last_atk])
 		return
-	_last_attack_time[sender_id] = now
+	_last_attack_time[atk_key] = now
 	var e = _find_enemy_by_network_id(enemy_network_id)
 	if not is_instance_valid(e):
 		print("[Server][Combat] RECHAZADO — no se encontró enemigo con nid=%d (¿no sincronizado aún?)" % enemy_network_id)
