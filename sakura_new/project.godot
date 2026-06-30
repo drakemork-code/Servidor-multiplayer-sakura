@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Sakura Chronicles"
 config/description="Sakura Chronicles — MMORPG Pixel Art — Godot 4.6"
-run/main_scene="res://scenes/splash_screen.tscn"
+run/main_scene="res://server_main.gd"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 config/icon="res://icon.png"
