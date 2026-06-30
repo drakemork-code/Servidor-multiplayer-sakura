@@ -43,7 +43,6 @@ AchievementManager="*res://systems/achievement_manager.gd"
 BossNotifManager="*res://systems/boss_notification_manager.gd"
 MinimapManager="*res://systems/minimap_manager.gd"
 LoadingScreen="*res://systems/loading_screen.tscn"
-ServerMain="*res://server_main.gd"
 
 [display]
 
