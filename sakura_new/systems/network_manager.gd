@@ -99,8 +99,6 @@ const ENEMY_BROADCAST_INTERVAL_SEC : float = 10.0
 const RESYNC_RETRY_SEC    : float = 1.5
 const RESYNC_MAX_RETRIES  : int   = 8
 
-const REMOTE_PLAYER_SCENE = preload("res://scenes/player_remote.tscn")
-
 # ──────────────────────────────────────────────────────────────
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -250,9 +248,9 @@ func _on_peer_disconnected(peer_id: int) -> void:
 		online_players.erase(peer_id)
 		_cleanup_party_for_peer(peer_id)
 		var _atk_keys = []
-			for _k in _last_attack_time:
-				if _k.begins_with(str(peer_id) + ":"): _atk_keys.append(_k)
-			for _k in _atk_keys: _last_attack_time.erase(_k)
+		for _k in _last_attack_time:
+			if _k.begins_with(str(peer_id) + ":"): _atk_keys.append(_k)
+		for _k in _atk_keys: _last_attack_time.erase(_k)
 		_notify_player_left.rpc(peer_id)
 	_remove_remote_node(peer_id)
 	player_left.emit(peer_id)
