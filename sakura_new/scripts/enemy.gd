@@ -270,6 +270,9 @@ func _ready() -> void:
 
 ## Llamado de forma diferida para que global_position ya sea la final
 func _setup_sprite() -> void:
+	# En servidor headless no hay visuals — evitar carga de texturas
+	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
+		return
 	# Prioridad 1: sprites del Pack Mapa Sur (animated spritesheets propios)
 	if sprite_type in SOUTH_SPRITES:
 		var sd: Dictionary = SOUTH_SPRITES[sprite_type]

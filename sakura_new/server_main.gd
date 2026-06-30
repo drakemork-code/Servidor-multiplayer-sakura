@@ -56,9 +56,6 @@ func _ready() -> void:
 
 	# ── Cargar escenas de mundo para que los enemigos existan en el árbol ──
 	# El servidor es authoritative: spawns, daño y muerte se calculan aquí.
-	# Usamos await + process_frame para que add_child() no se llame mientras el
-	# árbol está ocupado inicializando hijos (evita "Parent node is busy" error).
-	await get_tree().process_frame
 	var world_scenes = [
 		"res://scenes/world_north.tscn",
 		"res://scenes/world_south.tscn",
@@ -69,8 +66,7 @@ func _ready() -> void:
 		if ResourceLoader.exists(scene_path):
 			var packed: PackedScene = load(scene_path)
 			var instance = packed.instantiate()
-			get_tree().root.add_child(instance)
-			await get_tree().process_frame
+			get_tree().root.call_deferred("add_child", instance)
 			print("[Server] Escena cargada: ", scene_path)
 		else:
 			push_error("[Server] No se encontró escena: " + scene_path)
