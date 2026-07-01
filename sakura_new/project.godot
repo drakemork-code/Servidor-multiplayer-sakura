@@ -27,6 +27,7 @@ InventoryManager="*res://systems/inventory_manager.gd"
 EnemyManager="*res://systems/enemy_manager.gd"
 ChatManager="*res://systems/chat_manager.gd"
 BossNotifManager="*res://systems/boss_notification_manager.gd"
+VersionGate="*res://systems/version_gate.gd"
 
 [display]
 

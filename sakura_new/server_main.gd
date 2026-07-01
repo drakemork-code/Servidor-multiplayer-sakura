@@ -49,6 +49,7 @@ func _ready() -> void:
 	print("  Enemigos: server-authoritative")
 	print("  Party: real por red")
 	print("  Saves: server-side")
+	print("  Version gate: activo (consultando auth server)")
 	print("===========================================")
 
 	# Iniciar red

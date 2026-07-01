@@ -42,6 +42,7 @@ signal server_shutdown_warning(seconds: int)
 signal party_invite_received(from_name: String, from_peer_id: int)
 signal party_updated()
 signal camp_cleared(camp_id: int)
+signal client_rejected_version(is_maintenance: bool, message: String, minimum_version: String)
 
 # ── Config ────────────────────────────────────────────────────
 const DEFAULT_HOST    : String = "127.0.0.1"
@@ -49,6 +50,14 @@ const DEFAULT_PORT    : int    = 7350
 const MAX_PLAYERS     : int    = 100  # límite lógico; WebSocketMultiplayerPeer no lo aplica directo en create_server
 const SYNC_HZ         : float  = 20.0
 const RECONNECT_DELAY : float  = 5.0
+
+# Versión del cliente. Se envía en el registro contra el servidor de
+# combate (_register_on_server) para que VersionGate pueda rechazar
+# clientes desactualizados incluso si se saltaron el chequeo del auth
+# server. ÚNICA fuente de verdad de la versión del build del cliente —
+# actualizar este valor en cada release junto con AUTH_BACKEND/versions.json
+# (o el doc config/versions en Firestore).
+const CLIENT_VERSION : String = "1.0.0"
 
 # ── Estado local ──────────────────────────────────────────────
 var is_server  : bool = false
@@ -265,6 +274,7 @@ func _on_peer_disconnected(peer_id: int) -> void:
 func _build_my_data() -> Dictionary:
 	return {
 		"name":       PlayerData.character_name,
+		"client_version": CLIENT_VERSION,
 		"hair_style": PlayerData.hair_style,
 		"race":       PlayerData.race,
 		"gender":     PlayerData.character_gender,
@@ -323,6 +333,29 @@ func _register_on_server(data: Dictionary) -> void:
 	if not is_server:
 		return
 	var sender = multiplayer.get_remote_sender_id()
+
+	# ── GATE DE VERSIÓN ──────────────────────────────────────────
+	# Segunda capa de defensa: aunque el auth server ya bloqueó el
+	# login de clientes viejos, un cliente modificado podría saltarse
+	# ese paso y conectarse directo al WebSocket de este servidor.
+	# Por eso volvemos a validar la versión aquí, con la data que
+	# llega en el propio paquete de registro.
+	var client_version : String = String(data.get("client_version", "0.0.0"))
+	if VersionGate.is_client_blocked(client_version):
+		print("[Server] ⛔ Conexión rechazada por versión: peer %d version=%s (mínima=%s, mantenimiento=%s)" % [
+			sender, client_version, VersionGate.minimum_version, VersionGate.maintenance
+		])
+		_reject_outdated_client.rpc_id(sender,
+			VersionGate.maintenance,
+			VersionGate.maintenance_msg,
+			VersionGate.minimum_version
+		)
+		# Pequeño delay para asegurar que el paquete de rechazo salga
+		# antes de cerrar la conexión del peer.
+		await get_tree().create_timer(0.3).timeout
+		multiplayer.multiplayer_peer.disconnect_peer(sender)
+		return
+
 	online_players[sender] = data
 	print("[Server] Jugador registrado: %s (ID %d)" % [data.get("name","?"), sender])
 	# Avisar a todos los demás peers que este jugador se unió
@@ -344,6 +377,15 @@ func _register_on_server(data: Dictionary) -> void:
 	# de las escenas de mundo hayan terminado antes de enviar la lista.
 	await get_tree().create_timer(1.0).timeout
 	_send_enemy_list_to_client(sender)
+
+# Notifica al cliente por qué fue rechazado antes de cortarle la conexión,
+# para que pueda mostrar la pantalla de actualización/mantenimiento en vez
+# de una simple "se perdió la conexión" sin contexto.
+@rpc("authority", "reliable")
+func _reject_outdated_client(is_maintenance: bool, msg: String, min_version: String) -> void:
+	# El cliente escucha esta señal específica para diferenciar
+	# "versión desactualizada / mantenimiento" de un fallo de red genérico.
+	client_rejected_version.emit(is_maintenance, msg, min_version)
 
 # ── FIX APARIENCIA EN CALIENTE ──────────────────────────────────
 # Llamar a esta función desde cualquier UI futura de personalización
