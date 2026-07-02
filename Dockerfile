@@ -1,13 +1,13 @@
 # ==============================================================
 #  Sakura Chronicles — Servidor de Multiplayer
 # ==============================================================
-# Descarga Godot 4.6.3 headless y corre el proyecto con --server.
+# Descarga Godot 4.7 headless y corre el proyecto con --server.
 # El proyecto vive descomprimido en sakura_new/ dentro del repo.
 # ==============================================================
 
 FROM ubuntu:22.04
 
-ARG GODOT_VERSION=4.6.3-stable
+ARG GODOT_VERSION=4.7-stable
 ENV GODOT_BIN=/opt/godot/godot
 ENV PORT=7350
 
