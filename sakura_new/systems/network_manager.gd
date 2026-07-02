@@ -66,6 +66,7 @@ signal party_invite_received(from_name: String, from_peer_id: int)
 signal party_updated()
 signal camp_cleared(camp_id: int)
 signal client_rejected_version(is_maintenance: bool, message: String, minimum_version: String)
+signal zone_transfer_requested(new_host: String, new_port: int, spawn: Dictionary, player_snapshot: Dictionary)
 
 # ── Config ────────────────────────────────────────────────────
 const DEFAULT_HOST    : String = "mp.sakurachronicles.lat"
@@ -89,6 +90,15 @@ var my_peer_id : int  = 0
 
 # peers online: { peer_id: { name, position, scene, hp, max_hp, anim, facing, guild_id } }
 var online_players : Dictionary = {}
+# Nombre de la zona que corre ESTA instancia de servidor (ej.
+# "town", "world_south"). "all" en modo legado monolítico.
+# Seteada por server_main.gd al arrancar. Usada en
+# request_zone_transfer para saber a qué zonas puede mandar jugadores.
+var CURRENT_ZONE : String = "all"
+# Guardado por el cliente ANTES de pedir el traspaso (scene_transition.gd),
+# para que loading_screen.gd sepa a qué escena ir DESPUÉS de reconectar,
+# sin que el servidor tenga que mandarla de vuelta en _zone_transfer_grant.
+var pending_zone_target_scene : String = ""
 
 # Anti-cheat: timestamp del último ataque válido aceptado por peer_id (server-side)
 var _last_attack_time : Dictionary = {}
@@ -1131,3 +1141,65 @@ func _rpc_shutdown_warning(seconds: int) -> void:
 	server_shutdown_warning.emit(seconds)
 	ChatManager.receive_message("global","⚠ Sistema",
 		"El servidor se reinicia en %d segundos para una actualización." % seconds)
+
+# ──────────────────────────────────────────────────────────────
+# TRASPASO DE ZONA (PARTE 5.2) — server-authoritative handoff
+#
+# Mismo mapeo zona→host:puerto documentado en PARTE 5.1 y en
+# server_main.gd (ZONE_PORTS). Mientras todas las zonas vivan en el
+# mismo VPS, el host es siempre DEFAULT_HOST y solo cambia el
+# puerto — pero se manda host Y puerto explícitos desde el server
+# para no asumir nada del lado cliente, así el día que una zona se
+# mueva a otro VPS, esto sigue funcionando sin tocar el cliente.
+# ──────────────────────────────────────────────────────────────
+
+const ZONE_TRANSFER_PORTS: Dictionary = {
+	"town":        7350,
+	"world_north": 7351,
+	"world_south": 7352,
+	"world_east":  7353,
+	"world_west":  7354,
+}
+
+@rpc("any_peer", "reliable")
+func request_zone_transfer(target_scene: String, spawn: Dictionary) -> void:
+	if not is_server:
+		return
+	var sender: int = multiplayer.get_remote_sender_id()
+	if not online_players.has(sender):
+		return
+
+	# target_scene llega como nombre de zona corto (ej. "world_south"),
+	# no como res://... — así se puede comparar directo contra el mapeo
+	# de puertos sin depender de la ruta completa de la escena.
+	if not ZONE_TRANSFER_PORTS.has(target_scene):
+		push_warning("[Server] request_zone_transfer: zona inválida '%s' pedida por peer %d" % [target_scene, sender])
+		return
+
+	var new_port: int = ZONE_TRANSFER_PORTS[target_scene]
+	var player_snapshot: Dictionary = {
+		"hp":       online_players[sender].get("hp", 0),
+		"max_hp":   online_players[sender].get("max_hp", 0),
+		"party_id": online_players[sender].get("party_id", ""),
+	}
+
+	print("[Server] Traspaso de zona: peer %d → %s (puerto %d)" % [sender, target_scene, new_port])
+
+	# Avisar al cliente ANTES de desconectarlo, para minimizar la
+	# ventana donde el cliente no sabe todavía a dónde reconectar
+	# (decisión documentada en PARTE 5.1, punto 2).
+	_zone_transfer_grant.rpc_id(sender, DEFAULT_HOST, new_port, spawn, player_snapshot)
+
+	# Limpiar el estado de este peer en la zona actual — se registra
+	# de nuevo desde cero al conectar al proceso de la zona destino.
+	online_players.erase(sender)
+	_cleanup_party_for_peer(sender)
+	_notify_player_left.rpc(sender)
+
+@rpc("authority", "reliable")
+func _zone_transfer_grant(new_host: String, new_port: int, spawn: Dictionary, player_snapshot: Dictionary) -> void:
+	# Solo corre en el cliente. El orden importa: primero se
+	# reconecta, y SOLO tras confirmar la conexión nueva se dispara
+	# el cambio de escena — así nunca se muestra la escena nueva sin
+	# conexión real detrás (documentado en PARTE 5.1, punto 3).
+	zone_transfer_requested.emit(new_host, new_port, spawn, player_snapshot)

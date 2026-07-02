@@ -9,7 +9,7 @@
 extends Node
 
 # ============================================================
-# SERVER MAIN — Punto de entrada del servidor headless  (v22.3)
+# SERVER MAIN — Punto de entrada del servidor headless  (v23.0)
 #
 # CAMBIOS v22.2:
 #   - Carga saves de servidor al arrancar (_server_load_saves)
@@ -22,29 +22,81 @@ extends Node
 #   - Transporte WebSocket en vez de ENet (Railway no expone UDP)
 #   - Puerto leído de la env var PORT que asigna Railway; si no
 #     existe (ej. corriendo local), usa el puerto por defecto 7350
+#
+# CAMBIOS v23.0 (PARTE 5.2 — separación por zona):
+#   - Cada instancia ahora corre UNA sola zona, elegida por el
+#     argumento --zone=<nombre> (ej. --zone=world_south). Si no se
+#     pasa --zone, cae en modo legado "all" (carga las 4 world_*
+#     juntas, comportamiento de v22.3) para no romper deploys viejos
+#     mientras se migra.
+#   - El puerto ya NO se lee solo de la env var PORT: si hay --zone
+#     válida, el puerto se resuelve del mapeo ZONE_PORTS de abajo
+#     (mismo mapeo documentado en PARTE 5.1). PORT (env var) sigue
+#     funcionando como override manual si se define explícita.
+#   - "town" no tiene enemigos (no carga ninguna world_*.tscn), solo
+#     acepta conexiones — confirmado en PARTE 5.1 que el server
+#     nunca cargó town.tscn como escena de servidor, se mantiene así.
 # ============================================================
 
 const DEFAULT_PORT : int   = 7350
 const TICK_RATE     : float = 1.0 / 20.0
 
+# Mapeo zona → puerto (PARTE 5.1). Mantener sincronizado con el
+# systemd template sakura-mp@.service y con el cliente
+# (scene_transition.gd / network_manager.gd usan los mismos nombres
+# de zona para pedir el traspaso).
+const ZONE_PORTS: Dictionary = {
+	"town":        7350,
+	"world_north": 7351,
+	"world_south": 7352,
+	"world_east":  7353,
+	"world_west":  7354,
+}
+
+const ZONE_SCENES: Dictionary = {
+	"town":        [],  # sin enemigos, no carga escena de mundo
+	"world_north": ["res://scenes/world_north.tscn"],
+	"world_south": ["res://scenes/world_south.tscn"],
+	"world_east":  ["res://scenes/world_east.tscn"],
+	"world_west":  ["res://scenes/world_west.tscn"],
+}
+
 var PORT : int = DEFAULT_PORT
+var ZONE : String = "all"  # "all" = modo legado monolítico (v22.3)
 var _uptime     : float = 0.0
 var _tick_accum : float = 0.0
 var _hb_logged  : int   = 0   # último minuto logueado
+
+func _get_arg_value(prefix: String) -> String:
+	# Busca "--zone=algo" tanto en args normales como en user_args
+	# (Godot separa los args después de "--" en get_cmdline_user_args()).
+	for args in [OS.get_cmdline_args(), OS.get_cmdline_user_args()]:
+		for a in args:
+			if a.begins_with(prefix):
+				return a.substr(prefix.length())
+	return ""
 
 func _ready() -> void:
 	if not "--server" in OS.get_cmdline_args() and not "--server" in OS.get_cmdline_user_args():
 		queue_free()
 		return
 
-	# Railway asigna el puerto público vía la env var PORT.
-	# Si no existe (corriendo en local para pruebas), usamos 7350.
+	var zone_arg = _get_arg_value("--zone=")
+	if zone_arg != "" and ZONE_PORTS.has(zone_arg):
+		ZONE = zone_arg
+		PORT = ZONE_PORTS[ZONE]
+	elif zone_arg != "":
+		push_error("[Server] --zone='%s' no es una zona válida. Válidas: %s. Cayendo a modo legado 'all'." % [zone_arg, str(ZONE_PORTS.keys())])
+
+	# Railway asigna el puerto público vía la env var PORT. Si está
+	# seteada, tiene prioridad sobre el puerto resuelto por --zone
+	# (permite override manual, ej. detrás de un proxy con remapeo).
 	var env_port = OS.get_environment("PORT")
 	if env_port != "":
 		PORT = int(env_port)
 
 	print("===========================================")
-	print("  Sakura Chronicles — Servidor WebSocket v22.3")
+	print("  Sakura Chronicles — Servidor v23.0  (zona: %s)" % ZONE)
 	print("  Puerto: %d  |  Max jugadores: %d" % [PORT, NetworkManager.MAX_PLAYERS])
 	print("  Enemigos: server-authoritative")
 	print("  Party: real por red")
@@ -54,15 +106,24 @@ func _ready() -> void:
 
 	# Iniciar red
 	NetworkManager.start_server(PORT)
+	NetworkManager.CURRENT_ZONE = ZONE
 
 	# ── Cargar escenas de mundo para que los enemigos existan en el árbol ──
 	# El servidor es authoritative: spawns, daño y muerte se calculan aquí.
-	var world_scenes = [
-		"res://scenes/world_north.tscn",
-		"res://scenes/world_south.tscn",
-		"res://scenes/world_east.tscn",
-		"res://scenes/world_west.tscn",
-	]
+	# En modo "all" (legado) carga las 4 juntas, igual que v22.3.
+	# En modo por-zona, carga SOLO la lista de ZONE_SCENES de su zona
+	# (puede ser vacía, ej. "town" no tiene mundo con enemigos).
+	var world_scenes: Array = []
+	if ZONE == "all":
+		world_scenes = [
+			"res://scenes/world_north.tscn",
+			"res://scenes/world_south.tscn",
+			"res://scenes/world_east.tscn",
+			"res://scenes/world_west.tscn",
+		]
+	else:
+		world_scenes = ZONE_SCENES.get(ZONE, [])
+
 	for scene_path in world_scenes:
 		if ResourceLoader.exists(scene_path):
 			var packed: PackedScene = load(scene_path)
