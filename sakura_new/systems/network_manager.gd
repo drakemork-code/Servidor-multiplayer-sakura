@@ -9,7 +9,7 @@
 extends Node
 
 # ============================================================
-# NETWORK MANAGER — Autoload global  (v22.3 — server-authoritative)
+# NETWORK MANAGER — Autoload global  (v23.0 — server-authoritative)
 #
 # CAMBIOS v22.2:
 #   1. Broadcast de posición filtrado por escena (ya no envía
@@ -30,6 +30,29 @@ extends Node
 #      asigna el puerto vía la env var PORT) y funciona con el
 #      sistema multiplayer de alto nivel de Godot sin cambios en
 #      el resto del archivo (RPCs, spawn de remotos, sync, etc.)
+#
+# CAMBIOS v23.0:
+#   6. Transporte cambiado de vuelta de WebSocketMultiplayerPeer (TCP)
+#      a ENetMultiplayerPeer (UDP real). El servidor ahora corre en
+#      un VPS propio (Vultr) que sí expone UDP al público, así que
+#      ya no depende de la limitación de Railway que motivó el
+#      cambio a WebSocket en v22.3. ENet da menor latencia y mejor
+#      manejo de paquetes para juego en tiempo real.
+#      - start_server(): WebSocketMultiplayerPeer.create_server(port)
+#        → ENetMultiplayerPeer.create_server(port, max_clients),
+#        reutilizando MAX_PLAYERS como max_clients por defecto.
+#      - join_server(): se elimina la lógica de armado de URL con
+#        scheme ws://wss:// (ENet no la usa); ahora se llama
+#        directo a ENetMultiplayerPeer.create_client(host, port).
+#      - El resto del archivo (RPCs, spawn de remotos, sync, combate,
+#        chat, party) NO se modificó: sigue funcionando igual porque
+#        opera sobre la API de alto nivel de MultiplayerAPI de Godot
+#        (multiplayer.multiplayer_peer, señales peer_connected /
+#        connected_to_server / etc.), que es idéntica sin importar
+#        qué MultiplayerPeer concreto esté por debajo.
+#      - Puerto UDP correspondiente debe estar abierto en el
+#        firewall del VPS (ufw allow <puerto>/udp) — ver PARTE 4 del
+#        plan de migración para el puerto exacto usado.
 # ============================================================
 
 signal connected_to_server()
@@ -46,8 +69,8 @@ signal client_rejected_version(is_maintenance: bool, message: String, minimum_ve
 
 # ── Config ────────────────────────────────────────────────────
 const DEFAULT_HOST    : String = "mp.sakurachronicles.lat"
-const DEFAULT_PORT    : int    = 443
-const MAX_PLAYERS     : int    = 100  # límite lógico; WebSocketMultiplayerPeer no lo aplica directo en create_server
+const DEFAULT_PORT    : int    = 7350  # UDP directo a Godot — ya no pasa por Caddy/443 (eso era solo para el WebSocket de v22.3)
+const MAX_PLAYERS     : int    = 100  # límite real de clientes; ENetMultiplayerPeer lo aplica directo en create_server(port, max_clients)
 const SYNC_HZ         : float  = 20.0
 const RECONNECT_DELAY : float  = 5.0
 
@@ -188,26 +211,22 @@ func reset_resync_retries() -> void:
 # SERVIDOR / CLIENTE
 # ──────────────────────────────────────────────────────────────
 
-func start_server(port: int = DEFAULT_PORT) -> void:
-	var peer = WebSocketMultiplayerPeer.new()
-	var err  = peer.create_server(port)
+func start_server(port: int = DEFAULT_PORT, max_clients: int = MAX_PLAYERS) -> void:
+	var peer = ENetMultiplayerPeer.new()
+	var err  = peer.create_server(port, max_clients)
 	if err != OK:
 		push_error("[NetworkManager] Error al crear servidor: %s" % err)
 		return
 	multiplayer.multiplayer_peer = peer
 	is_server = true
 	my_peer_id = 1
-	print("[NetworkManager] Servidor WebSocket v22.3 en puerto %d" % port)
+	print("[NetworkManager] Servidor ENet v23.0 en puerto %d (máx. %d jugadores)" % [port, max_clients])
 
 func join_server(host: String = DEFAULT_HOST, port: int = DEFAULT_PORT) -> void:
 	_last_host = host
 	_last_port = port
-	var peer = WebSocketMultiplayerPeer.new()
-	# Railway sirve HTTPS, así que el WebSocket debe ser "wss://" (seguro).
-	# Para pruebas locales (127.0.0.1) usamos "ws://" sin TLS.
-	var scheme = "wss://" if host != "127.0.0.1" and host != "localhost" else "ws://"
-	var url = "%s%s:%d" % [scheme, host, port]
-	var err  = peer.create_client(url)
+	var peer = ENetMultiplayerPeer.new()
+	var err  = peer.create_client(host, port)
 	if err != OK:
 		push_error("[NetworkManager] Error al conectar: %s" % err)
 		connection_failed.emit()
