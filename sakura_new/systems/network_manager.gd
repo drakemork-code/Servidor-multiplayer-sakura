@@ -45,8 +45,8 @@ signal camp_cleared(camp_id: int)
 signal client_rejected_version(is_maintenance: bool, message: String, minimum_version: String)
 
 # ── Config ────────────────────────────────────────────────────
-const DEFAULT_HOST    : String = "127.0.0.1"
-const DEFAULT_PORT    : int    = 7350
+const DEFAULT_HOST    : String = "mp.sakurachronicles.lat"
+const DEFAULT_PORT    : int    = 443
 const MAX_PLAYERS     : int    = 100  # límite lógico; WebSocketMultiplayerPeer no lo aplica directo en create_server
 const SYNC_HZ         : float  = 20.0
 const RECONNECT_DELAY : float  = 5.0
