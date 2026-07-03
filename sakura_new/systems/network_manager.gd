@@ -99,6 +99,11 @@ var CURRENT_ZONE : String = "all"
 # para que loading_screen.gd sepa a qué escena ir DESPUÉS de reconectar,
 # sin que el servidor tenga que mandarla de vuelta en _zone_transfer_grant.
 var pending_zone_target_scene : String = ""
+# PARTE 5.3: guarda el party_id recibido en player_snapshot durante un
+# traspaso de zona, para incluirlo en _build_my_data() al reconectar
+# al proceso nuevo — así el servidor destino puede reconstruir la
+# party consultando Redis (ver _resolve_party_after_zone_transfer).
+var _pending_party_id_after_transfer : String = ""
 
 # Anti-cheat: timestamp del último ataque válido aceptado por peer_id (server-side)
 var _last_attack_time : Dictionary = {}
@@ -116,6 +121,12 @@ var _reconnect_timer : float = 0.0
 var _trying_reconnect : bool = false
 var _last_host : String = DEFAULT_HOST
 var _last_port : int    = DEFAULT_PORT
+
+# Getter público — usado por ConnectionMonitor (systems/connection_monitor.gd)
+# para reintentar manualmente contra el mismo host/puerto sin duplicar
+# el estado de "a dónde estábamos conectados".
+func get_last_target() -> Dictionary:
+	return {"host": _last_host, "port": _last_port}
 
 # FIX BUG "DOS MUNDOS": el resync de enemigos/jugadores al cambiar de escena
 # se pedía UNA SOLA VEZ desde loading_screen.gd, esperando solo 3 frames a
@@ -301,7 +312,7 @@ func _on_peer_disconnected(peer_id: int) -> void:
 # ──────────────────────────────────────────────────────────────
 
 func _build_my_data() -> Dictionary:
-	return {
+	var data := {
 		"name":       PlayerData.character_name,
 		"client_version": CLIENT_VERSION,
 		"hair_style": PlayerData.hair_style,
@@ -326,6 +337,15 @@ func _build_my_data() -> Dictionary:
 		"eye_r":  PlayerData.eye_color.r,  "eye_g":  PlayerData.eye_color.g,  "eye_b":  PlayerData.eye_color.b,
 		"outfit_r": PlayerData.outfit_color.r, "outfit_g": PlayerData.outfit_color.g, "outfit_b": PlayerData.outfit_color.b,
 	}
+	# PARTE 5.3: si veníamos de un traspaso de zona con party activa,
+	# incluir el party_id para que el servidor destino reconstruya la
+	# party consultando Redis. Se limpia después de usarlo una vez —
+	# un registro normal (login inicial, no traspaso) no debe mandar
+	# esto.
+	if not _pending_party_id_after_transfer.is_empty():
+		data["party_id"] = _pending_party_id_after_transfer
+		_pending_party_id_after_transfer = ""
+	return data
 
 func _get_my_position() -> Dictionary:
 	var p = GameManager.player_ref
@@ -387,6 +407,14 @@ func _register_on_server(data: Dictionary) -> void:
 
 	online_players[sender] = data
 	print("[Server] Jugador registrado: %s (ID %d)" % [data.get("name","?"), sender])
+
+	# PARTE 5.3 — si el cliente llega con un party_id (viene del
+	# player_snapshot recibido en _zone_transfer_grant, ver más abajo),
+	# intentar reconstruir la party local consultando Redis.
+	var incoming_party_id: String = String(data.get("party_id", ""))
+	if not incoming_party_id.is_empty():
+		_resolve_party_after_zone_transfer(sender, incoming_party_id)
+
 	# Avisar a todos los demás peers que este jugador se unió
 	_send_player_joined.rpc(sender, data)
 	# FIX BUG CRÍTICO: además del broadcast anterior, enviar explícitamente
@@ -931,6 +959,82 @@ func _broadcast_party_update(party_id: int) -> void:
 		for mid in members:
 			names.append(online_players.get(mid,{}).get("name","?"))
 		_rpc_recv_party_update.rpc_id(pid, members.duplicate(), names)
+	_push_party_to_redis(party_id, members)
+
+# ════════════════════════════════════════════════════════════════
+# SINCRONIZACIÓN DE PARTIES CROSS-ZONA (PARTE 5.3) — vía Redis local
+# en el mismo VPS (systems/redis_client.gd), SIN pasar por Railway.
+#
+# _server_parties es memoria LOCAL de cada proceso de zona — un
+# proceso no sabe nada de las parties que viven en otro proceso.
+# Para que la party sobreviva un traspaso de zona de sus miembros,
+# se espeja el estado a Redis usando character_name como identidad
+# estable (peer_id cambia en cada reconexión, confirmado en la
+# prueba real de traspaso de zona de PARTE 5.2).
+#
+# Clave: "party:<party_id>" → JSON con la lista de character_name
+# de los miembros + qué zona ocupa cada uno ahora mismo. TTL de 30s,
+# refrescado en cada update, para que una party abandonada (todos
+# los procesos caídos, o bug) no quede colgada en memoria de Redis
+# para siempre.
+# ════════════════════════════════════════════════════════════════
+
+const PARTY_REDIS_TTL_SEC := 30
+
+func _push_party_to_redis(party_id: int, members: Array) -> void:
+	if not RedisClient._connected:
+		return
+	var member_names: Array = []
+	for pid in members:
+		var pdata: Dictionary = online_players.get(pid, {})
+		member_names.append({
+			"name": pdata.get("name", "?"),
+			"zone": CURRENT_ZONE,
+		})
+	var payload := JSON.stringify({"members": member_names})
+	RedisClient.setex("party:%d" % party_id, PARTY_REDIS_TTL_SEC, payload)
+
+# Llamado cuando un jugador con party_id termina de registrarse en un
+# proceso de zona NUEVO (tras un traspaso). Consulta Redis para saber
+# si sus compañeros de party siguen conectados en otra zona, y si el
+# jugador local existe, refresca la entrada de Redis con la zona
+# actual (CURRENT_ZONE) para que la próxima consulta esté al día.
+func _resolve_party_after_zone_transfer(peer_id: int, party_id_str: String) -> void:
+	if party_id_str.is_empty() or not RedisClient._connected:
+		return
+	var party_id := party_id_str.to_int()
+	if party_id == 0:
+		return
+	var raw := RedisClient.get_value("party:%d" % party_id)
+	if raw.is_empty():
+		# La party no existe más en Redis (TTL venció, o nunca se
+		# sincronizó) — no hay nada que reconstruir localmente.
+		return
+	var parsed = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("members"):
+		return
+	var my_name: String = online_players.get(peer_id, {}).get("name", "")
+	if my_name.is_empty():
+		return
+	# Reconstruir _server_parties localmente con SOLO los miembros que
+	# están conectados a ESTE proceso (los que están en otra zona no
+	# tienen peer local acá, así que no se pueden agregar al array de
+	# peer_ids — pero sí se les avisa por RPC más abajo si hiciera
+	# falta un HUD "en otra zona", fuera de alcance de este paso).
+	var local_member_ids: Array = [peer_id]
+	for m in parsed["members"]:
+		if typeof(m) != TYPE_DICTIONARY:
+			continue
+		var mname: String = m.get("name", "")
+		if mname == my_name:
+			continue
+		# ¿Ese compañero está conectado a ESTE proceso de zona ahora?
+		for pid in online_players:
+			if online_players[pid].get("name", "") == mname and pid != peer_id:
+				local_member_ids.append(pid)
+	_server_parties[party_id] = local_member_ids
+	online_players[peer_id]["party_id"] = str(party_id)
+	_broadcast_party_update(party_id)
 
 @rpc("authority", "reliable")
 func _rpc_recv_party_update(member_ids: Array, member_names: Array) -> void:
@@ -948,6 +1052,7 @@ func _cleanup_party_for_peer(peer_id: int) -> void:
 			party.erase(peer_id)
 			if party.size() == 0:
 				_server_parties.erase(party_id)
+				RedisClient.delete("party:%d" % party_id)
 			else:
 				_broadcast_party_update(party_id)
 			break
@@ -1177,11 +1282,25 @@ func request_zone_transfer(target_scene: String, spawn: Dictionary) -> void:
 		return
 
 	var new_port: int = ZONE_TRANSFER_PORTS[target_scene]
+	# PARTE 5.3: el party_id real vive en _server_parties (clave del
+	# diccionario, no en online_players — ese campo nunca se setea en
+	# el registro normal). Buscar en qué party está el sender, si en
+	# alguna.
+	var sender_party_id: String = ""
+	for pid in _server_parties:
+		if sender in _server_parties[pid]:
+			sender_party_id = str(pid)
+			break
 	var player_snapshot: Dictionary = {
 		"hp":       online_players[sender].get("hp", 0),
 		"max_hp":   online_players[sender].get("max_hp", 0),
-		"party_id": online_players[sender].get("party_id", ""),
+		"party_id": sender_party_id,
 	}
+	# Antes de desconectar al peer, refrescar en Redis su zona actual
+	# para que el proceso destino, al reconstruir la party, no lo vea
+	# como "todavía en esta zona" (dato viejo).
+	if not sender_party_id.is_empty():
+		_push_party_to_redis(sender_party_id.to_int(), _server_parties[sender_party_id.to_int()])
 
 	print("[Server] Traspaso de zona: peer %d → %s (puerto %d)" % [sender, target_scene, new_port])
 
@@ -1192,8 +1311,20 @@ func request_zone_transfer(target_scene: String, spawn: Dictionary) -> void:
 
 	# Limpiar el estado de este peer en la zona actual — se registra
 	# de nuevo desde cero al conectar al proceso de la zona destino.
+	# NOTA: no usamos _cleanup_party_for_peer acá porque, si este peer
+	# era el último miembro local de la party en este proceso, borraría
+	# la clave de Redis que recién refrescamos arriba (el jugador sigue
+	# existiendo, solo cambia de proceso). Se hace la limpieza local
+	# equivalente sin el DEL.
 	online_players.erase(sender)
-	_cleanup_party_for_peer(sender)
+	if not sender_party_id.is_empty():
+		var pid_int := sender_party_id.to_int()
+		if _server_parties.has(pid_int):
+			_server_parties[pid_int].erase(sender)
+			if _server_parties[pid_int].size() == 0:
+				_server_parties.erase(pid_int)
+				# Sin miembros locales, pero la entrada en Redis sigue
+				# viva (con TTL) para que el proceso destino la lea.
 	_notify_player_left.rpc(sender)
 
 @rpc("authority", "reliable")
@@ -1202,4 +1333,5 @@ func _zone_transfer_grant(new_host: String, new_port: int, spawn: Dictionary, pl
 	# reconecta, y SOLO tras confirmar la conexión nueva se dispara
 	# el cambio de escena — así nunca se muestra la escena nueva sin
 	# conexión real detrás (documentado en PARTE 5.1, punto 3).
+	_pending_party_id_after_transfer = String(player_snapshot.get("party_id", ""))
 	zone_transfer_requested.emit(new_host, new_port, spawn, player_snapshot)
