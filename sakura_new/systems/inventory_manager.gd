@@ -666,6 +666,15 @@ func save_inventory() -> void:
 	file.store_string(JSON.stringify(data))
 	file.close()
 
+	# PARTE 6.2: antes, solo los cambios de moneda marcaban el guardado
+	# a servidor como pendiente — un jugador que solo junta ítems (sin
+	# oro) podía pasar mucho rato sin que su inventario llegara a
+	# Firestore, más allá del guardado local de acá arriba. Ahora
+	# cualquier cambio de inventario también entra en el mismo ciclo
+	# de autosave de 60s que ya usa el oro (PlayerData._server_save_timer),
+	# sin disparar un guardado inmediato — se mantiene igual de barato.
+	PlayerData._pending_server_save = true
+
 func load_inventory() -> void:
 	if not FileAccess.file_exists("user://inventory.save"):
 		return

@@ -25,7 +25,7 @@ extends Node
 
 signal config_updated()
 
-const AUTH_BACKEND      : String = "https://sakurachronicles.up.railway.app"
+const AUTH_BACKEND      : String = "https://auth.sakurachronicles.lat"
 const REFRESH_INTERVAL  : float  = 60.0   # segundos entre refrescos de la config
 const REQUEST_TIMEOUT   : float  = 8.0
 
@@ -83,7 +83,7 @@ func _on_version_response(result: int, code: int, _headers: PackedStringArray, b
 static func compare_versions(a: String, b: String) -> int:
 	var pa := a.split(".")
 	var pb := b.split(".")
-	var len_ := max(pa.size(), pb.size())
+	var len_: int = max(pa.size(), pb.size())
 	for i in len_:
 		var da := int(pa[i]) if i < pa.size() else 0
 		var db := int(pb[i]) if i < pb.size() else 0

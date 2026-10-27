@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="Sakura Chronicles"
-config/description="Sakura Chronicles — MMORPG Pixel Art — Godot 4.6"
+config/description="Sakura Chronicles — Servidor — Godot 4.7"
 run/main_scene="res://scenes/server_main.tscn"
-config/features=PackedStringArray("4.6", "GL Compatibility")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 config/icon="res://icon.png"
 boot_splash/show_image=false
@@ -24,6 +24,7 @@ NetworkManager="*res://systems/network_manager.gd"
 GameManager="*res://systems/game_manager.gd"
 PlayerData="*res://systems/player_data.gd"
 InventoryManager="*res://systems/inventory_manager.gd"
+BankManager="*res://systems/bank_manager.gd"
 EnemyManager="*res://systems/enemy_manager.gd"
 ChatManager="*res://systems/chat_manager.gd"
 BossNotifManager="*res://systems/boss_notification_manager.gd"

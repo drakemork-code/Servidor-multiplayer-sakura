@@ -81,7 +81,7 @@ var server_save_callback: Callable = Callable()
 # ── Credenciales cacheadas para save directo (cuando main_menu ya no existe) ──
 var _cached_gmail:    String = ""
 var _cached_password: String = ""
-const AUTH_BACKEND := "https://sakurachronicles.up.railway.app"
+const AUTH_BACKEND := "https://auth.sakurachronicles.lat"
 
 # ── Equipment stats (calculados por InventoryManager) ─
 var equipment_defense: int = 0
@@ -691,8 +691,12 @@ func add_bronze(amount: int) -> void:
 	stat_updated.emit()
 	save_character_data()   # Guardado local inmediato (no se pierden monedas)
 	# Marcar guardado en servidor pendiente (se dispara cada 60 s automáticamente)
+	# PARTE 6.2: NO reiniciar _server_save_timer acá — si se reinicia en
+	# cada cambio de moneda, un jugador farmeando oro sin parar puede
+	# posponer el autosave a Firestore indefinidamente. Solo se marca
+	# el flag; el timer sigue su cuenta normal desde el último reset
+	# real (arranque, o el propio disparo del autosave).
 	_pending_server_save = true
-	_server_save_timer = 0.0   # reiniciar ventana cada vez que llegan monedas
 	# Logro economía
 	var am = get_node_or_null("/root/AchievementManager")
 	if am: am.on_currency_changed(get_total_bronze())
@@ -709,8 +713,8 @@ func spend_bronze(amount: int) -> bool:
 	currency_changed.emit()
 	stat_updated.emit()
 	save_character_data()   # Guardado local inmediato al gastar monedas
+	# PARTE 6.2: ídem add_bronze, no reiniciar el timer acá.
 	_pending_server_save = true
-	_server_save_timer = 0.0
 	return true
 
 func get_total_bronze() -> int:

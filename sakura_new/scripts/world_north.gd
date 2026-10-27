@@ -76,6 +76,9 @@ var _boss_node:     Node = null
 # ── Campamentos activos ──────────────────────────────────────
 var _camps: Array = []   # [{center, label_node, chest_node, enemies:[]}]
 
+# ID determinístico de campamento, calculado igual en cliente y servidor a
+# partir del centro del camp (misma fórmula que el seed de nivel). Permite
+# al cliente ubicar el cofre correspondiente cuando llega _rpc_camp_cleared.
 func _camp_id_for(center: Vector2) -> int:
 	return int(center.x) * 73856093 ^ int(center.y) * 19349663
 
@@ -89,19 +92,21 @@ func _ready() -> void:
 	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
 	if not _srv:
 		GameManager.ensure_player_and_ui(self)
+	_draw_background()
+	_draw_ring_overlays()
+	_draw_terrain_features()
+	call_deferred("_setup_camera_limits")
 	if not _srv:
-		_draw_background()
-		_draw_ring_overlays()
-		_draw_terrain_features()
-		call_deferred("_setup_camera_limits")
 		_spawn_player()
 	_setup_borders()
-	# FIX MOBS: solo el SERVIDOR genera campamentos/enemigos — el cliente
-	# ya no spawnea nada localmente, los recibe creados por el servidor
-	# vía _rpc_sync_enemy_list (ver network_manager.gd). Los recursos
-	# (minerales/hierbas/árboles) SÍ se quedan locales por jugador.
+	# FIX MOBS: solo el SERVIDOR spawnea enemigos (em.spawn_enemy) — el cliente
+	# ya no los crea localmente, los recibe sincronizados vía _rpc_sync_enemy_list
+	# (ver network_manager.gd). PERO la decoración de campamentos y los cofres
+	# de recompensa SÍ deben dibujarse en cada cliente: son cosméticos/locales
+	# y _spawn_camp() ya discrimina internamente el spawn de mobs con el mismo
+	# flag _srv, así que _spawn_all_camps() se llama siempre.
+	call_deferred("_spawn_all_camps")
 	if _srv:
-		call_deferred("_spawn_all_camps")
 		call_deferred("_spawn_scattered_enemies")
 	call_deferred("_spawn_resource_nodes")
 	if not _srv:
@@ -113,6 +118,25 @@ func _ready() -> void:
 		get_node("/root/AudioManager").play_zone_music("world_north")
 	if not _srv and has_node("/root/WeatherSystem"):
 		get_node("/root/WeatherSystem").set_weather("snow")
+	if not _srv and has_node("/root/NetworkManager"):
+		var nm = get_node("/root/NetworkManager")
+		if nm.has_signal("camp_cleared") and not nm.camp_cleared.is_connected(_on_network_camp_cleared):
+			nm.camp_cleared.connect(_on_network_camp_cleared)
+		GameManager.current_scene = ZONE_PATH
+		if nm.is_client:
+			call_deferred("_notify_server_scene_ready", nm)
+		else:
+			get_tree().create_timer(0.5).timeout.connect(
+				func(): _notify_server_scene_ready(nm)
+			)
+
+func _notify_server_scene_ready(nm: Node) -> void:
+	if not is_instance_valid(nm) or not nm.is_client:
+		return
+	if nm.has_method("_send_my_state"):
+		nm._send_my_state()
+	if nm.has_method("request_enemy_resync"):
+		nm.request_enemy_resync.rpc_id(1, ZONE_PATH)
 
 # ════════════════════════════════════════════════════════════
 # MEJORA 6 — DETECCIÓN DE CRUCE DE ANILLO (zona peligrosa)
@@ -344,6 +368,8 @@ func _draw_frozen_lake(pos: Vector2, size: Vector2) -> void:
 # ════════════════════════════════════════════════════════════
 
 func _setup_camera_limits() -> void:
+	# El servidor headless no tiene cámara: sin este return el reintento
+	# por call_deferred se repetiría cada frame para siempre.
 	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
 		return
 	var cam = get_viewport().get_camera_2d()
@@ -484,7 +510,8 @@ func _spawn_all_camps() -> void:
 func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 				 lv_min: int, lv_max: int, ring: String) -> void:
 	var camp_id: int = _camp_id_for(center)
-	var camp = {"center": center, "enemies": [], "chest_looted": false, "camp_id": camp_id, "mob_type": mob_type, "camp_name": camp_name}
+	var camp = {"center": center, "enemies": [], "chest_looted": false,
+		"camp_id": camp_id, "mob_type": mob_type, "camp_name": camp_name}
 	_draw_camp_ground(center, ring)
 	_draw_campfire(center + Vector2(0, 60))
 	_draw_camp_tent(center + Vector2(-165, 30))
@@ -511,7 +538,10 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 		Vector2(-25, 60), Vector2( 25,  60)
 	]
 	var alive_ref = [0]
-	if has_node("/root/EnemyManager"):
+	# FIX MOBS: solo el SERVIDOR spawnea enemigos aquí. La decoración del
+	# campamento y el cofre (arriba) sí se dibujan siempre.
+	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
+	if _srv and has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
 			# FIX BUG CRITICO MULTIJUGADOR: semilla deterministica por slot
@@ -540,6 +570,21 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 							_on_camp_cleared(captured_chest, captured_ring, captured_center,
 									captured_mob_type, captured_lv_min, captured_lv_max, captured_name)
 	_camps.append(camp)
+
+## Llamado cuando el servidor confirma que ESTE jugador (o su party) limpió
+## un campamento. Busca el cofre por camp_id y lo desbloquea.
+func _on_network_camp_cleared(camp_id: int) -> void:
+	for camp in _camps:
+		if camp.get("camp_id", 0) == camp_id:
+			var chest = camp.get("chest_node")
+			if not is_instance_valid(chest):
+				return
+			if not chest.get_meta("camp_locked", true):
+				return
+			_on_camp_cleared(chest, chest.get_meta("ring", ""), camp.get("center", Vector2.ZERO),
+					camp.get("mob_type", ""), chest.get_meta("lv_min", 1), chest.get_meta("lv_max", 1),
+					camp.get("camp_name", ""))
+			return
 
 ## Todos los mobs del campamento han muerto → desbloquear cofre y programar respawn
 func _on_camp_cleared(chest_area: Area2D, ring: String, center: Vector2,
@@ -582,8 +627,9 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 		Vector2(-25, 60), Vector2( 25,  60)
 	]
 	var alive_ref = [0]
+	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
 	var camp_id: int = _camp_id_for(center)
-	if has_node("/root/EnemyManager"):
+	if _srv and has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
 			# FIX BUG CRITICO MULTIJUGADOR: semilla deterministica por slot

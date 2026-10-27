@@ -127,22 +127,26 @@ func _ready() -> void:
 	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
 	if not _srv:
 		GameManager.ensure_player_and_ui(self)
+	_draw_background()
+	_draw_ring_overlays()
+	_draw_terrain_features()
 	if not _srv:
-		_draw_background()
-		_draw_ring_overlays()
-		_draw_terrain_features()
 		_animate_scene_trees()
-		call_deferred("_setup_camera_limits")
+	call_deferred("_setup_camera_limits")
 	if not _srv:
 		_spawn_player()
 	_setup_borders()
 	# Diferir spawns para que get_tree().current_scene apunte a esta escena
-	# FIX MOBS: solo el SERVIDOR genera campamentos/enemigos — el cliente
-	# ya no spawnea nada localmente, los recibe creados por el servidor
-	# vía _rpc_sync_enemy_list (ver network_manager.gd). Los recursos
-	# (minerales/hierbas/árboles) SÍ se quedan locales por jugador.
+	# FIX MOBS: solo el SERVIDOR spawnea enemigos (em.spawn_enemy) — el cliente
+	# ya no los crea localmente, los recibe sincronizados vía _rpc_sync_enemy_list
+	# (ver network_manager.gd). PERO la decoración de campamentos (tiendas,
+	# fogatas, banderas, empalizada, suelo) y los cofres de recompensa SÍ deben
+	# dibujarse en cada cliente: son cosméticos/locales y _spawn_camp() ya
+	# discrimina internamente el spawn de mobs con el mismo flag _srv, así que
+	# _spawn_all_camps() se llama siempre. Los recursos (minerales/hierbas/
+	# árboles) también se quedan locales por jugador.
+	call_deferred("_spawn_all_camps")
 	if _srv:
-		call_deferred("_spawn_all_camps")
 		call_deferred("_spawn_scattered_enemies")
 	call_deferred("_spawn_resource_nodes")
 	if not _srv:
@@ -154,7 +158,44 @@ func _ready() -> void:
 		get_node("/root/AudioManager").play_zone_music("world_south")
 	if not _srv and has_node("/root/WeatherSystem"):
 		get_node("/root/WeatherSystem").set_weather("rain")
+	# Desbloqueo remoto de cofres: el servidor avisa cuando un camp se limpia
+	# (solo a quien lo limpió y su party). El cliente nunca decide esto solo,
+	# porque ya no tiene los nodos enemy reales del camp.
+	if not _srv and has_node("/root/NetworkManager"):
+		var nm = get_node("/root/NetworkManager")
+		if nm.has_signal("camp_cleared") and not nm.camp_cleared.is_connected(_on_network_camp_cleared):
+			nm.camp_cleared.connect(_on_network_camp_cleared)
+		# FIX ESCENA VACÍA: el cliente se conecta desde el menú antes de que
+		# esta escena esté cargada, así que GameManager.current_scene llegó
+		# vacío al servidor. Ahora que la escena está lista, actualizamos
+		# la posición/escena en el servidor con el ZONE_PATH correcto.
+		GameManager.current_scene = ZONE_PATH
+		if nm.is_client:
+			call_deferred("_notify_server_scene_ready", nm)
+		else:
+			# Puede que aún no se haya confirmado la conexión — reintentamos
+			# después de un pequeño delay para asegurar que is_client sea true.
+			get_tree().create_timer(0.5).timeout.connect(
+				func(): _notify_server_scene_ready(nm)
+			)
 
+
+# ════════════════════════════════════════════════════════════
+# NOTIFICACIÓN DE ESCENA AL SERVIDOR
+# ════════════════════════════════════════════════════════════
+
+# Llamado con call_deferred una vez que _ready() terminó. Registra la escena
+# correcta en el servidor y pide resync de enemigos con la zona real.
+func _notify_server_scene_ready(nm: Node) -> void:
+	if not is_instance_valid(nm) or not nm.is_client:
+		return
+	# Reenviar estado con la escena correcta — esto actualiza online_players
+	# en el servidor con scene=ZONE_PATH en vez de scene=''.
+	if nm.has_method("_send_my_state"):
+		nm._send_my_state()
+	# Pedir lista de enemigos de esta zona explícitamente.
+	if nm.has_method("request_enemy_resync"):
+		nm.request_enemy_resync.rpc_id(1, ZONE_PATH)
 
 # ════════════════════════════════════════════════════════════
 # FONDO — tiles de hierba Void Megapack
@@ -377,9 +418,12 @@ func _draw_swamp_pool(pos: Vector2, size: Vector2) -> void:
 # ════════════════════════════════════════════════════════════
 
 func _setup_camera_limits() -> void:
-	# Solo aplica en cliente; en servidor no hay cámara
+	# El servidor headless no tiene cámara: sin este return el reintento
+	# por call_deferred se repetiría cada frame para siempre.
 	if has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server:
 		return
+	# Se llama con call_deferred para que la Camera2D del Player
+	# ya esté en el árbol al momento de configurar los límites.
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.limit_left   = -SCENE_WIDTH  / 2; cam.limit_right  = SCENE_WIDTH  / 2
@@ -522,7 +566,11 @@ func _spawn_camp(camp_name: String, center: Vector2, mob_type: String,
 		Vector2( -50, 110), Vector2(  50, 110)
 	]
 	var alive_ref = [0]
-	if has_node("/root/EnemyManager"):
+	# FIX MOBS: solo el SERVIDOR spawnea enemigos aquí. La decoración del
+	# campamento y el cofre (arriba) sí se dibujan siempre, en cliente y
+	# servidor, porque son cosméticos/locales.
+	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
+	if _srv and has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
 			# FIX BUG CRÍTICO MULTIJUGADOR: antes se usaba randi_range() global,
@@ -758,6 +806,22 @@ func _draw_chest(pos: Vector2, ring: String, lv_min: int, lv_max: int) -> Area2D
 # LÓGICA DE CAMPAMENTOS (igual que original)
 # ════════════════════════════════════════════════════════════
 
+# Llamado cuando el servidor confirma que ESTE jugador (o su party) limpió
+# un campamento. Busca el cofre por camp_id y lo desbloquea, reutilizando
+# el mismo flujo visual de _on_camp_cleared.
+func _on_network_camp_cleared(camp_id: int) -> void:
+	for camp in _camps:
+		if camp.get("camp_id", 0) == camp_id:
+			var chest = camp.get("chest_node")
+			if not is_instance_valid(chest):
+				return
+			if not chest.get_meta("camp_locked", true):
+				return  # ya estaba desbloqueado (eco duplicado del servidor)
+			_on_camp_cleared(chest, chest.get_meta("ring", ""), camp.get("center", Vector2.ZERO),
+					camp.get("mob_type", ""), chest.get_meta("lv_min", 1), chest.get_meta("lv_max", 1),
+					camp.get("camp_name", ""))
+			return
+
 func _on_camp_cleared(chest_area: Area2D, ring: String, center: Vector2,
 		mob_type: String, lv_min: int, lv_max: int, camp_name: String) -> void:
 	if not is_instance_valid(chest_area): return
@@ -794,8 +858,11 @@ func _respawn_camp(chest_area: Area2D, ring: String, center: Vector2,
 		Vector2(-25, 60), Vector2( 25,  60)
 	]
 	var alive_ref = [0]
+	# FIX MOBS: solo el SERVIDOR spawnea enemigos aquí (mismo criterio que
+	# _spawn_camp). El cliente recibe los mobs nuevos vía _rpc_sync_enemy_list.
+	var _srv: bool = has_node("/root/NetworkManager") and get_node("/root/NetworkManager").is_server
 	var camp_id: int = _camp_id_for(center)
-	if has_node("/root/EnemyManager"):
+	if _srv and has_node("/root/EnemyManager"):
 		var em = get_node("/root/EnemyManager")
 		for i in mob_count:
 			# Mismo fix de semilla determinística que en _spawn_camp (ver comentario ahí)
