@@ -28,7 +28,7 @@ var _reconnect_timer: float = 0.0
 const RECONNECT_INTERVAL_SEC: float = 3.0
 
 func _ready() -> void:
-	if not NetworkManager.is_server:
+	if not ("--server" in OS.get_cmdline_args() or "--server" in OS.get_cmdline_user_args()):
 		# Este autoload solo tiene sentido en procesos servidor. En el
 		# cliente Godot (jugador) no hace nada — no se conecta a nada.
 		set_process(false)
